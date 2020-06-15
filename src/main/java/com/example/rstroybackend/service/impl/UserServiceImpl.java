@@ -6,8 +6,8 @@ import com.example.rstroybackend.entity.User;
 import com.example.rstroybackend.repository.RoleRepo;
 import com.example.rstroybackend.repository.UserRepo;
 import com.example.rstroybackend.service.UserService;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +16,7 @@ import java.util.List;
 
 @Service
 @Slf4j
+@AllArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepo userRepo;
@@ -23,13 +24,6 @@ public class UserServiceImpl implements UserService {
     private final RoleRepo roleRepo;
 
     private final BCryptPasswordEncoder passwordEncoder;
-
-    @Autowired
-    public UserServiceImpl(UserRepo userRepo, RoleRepo roleRepo, BCryptPasswordEncoder passwordEncoder) {
-        this.userRepo = userRepo;
-        this.roleRepo = roleRepo;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     @Override
     public User register(User user) {

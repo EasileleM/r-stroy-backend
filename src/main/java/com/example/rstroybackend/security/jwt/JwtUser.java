@@ -1,12 +1,14 @@
 package com.example.rstroybackend.security.jwt;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Date;
 
+@AllArgsConstructor
 public class JwtUser implements UserDetails {
     private final Long id;
     private final String username;
@@ -17,28 +19,6 @@ public class JwtUser implements UserDetails {
     private final Boolean enabled;
     private final Date lastPasswordResetDate;
     private final Collection<? extends  GrantedAuthority> authorities;
-
-    public JwtUser(
-            Long id,
-            String username,
-            String firstName,
-            String lastName,
-            String password,
-            String email,
-            Boolean enabled,
-            Date lastPasswordResetDate,
-            Collection<? extends GrantedAuthority> authorities
-    ) {
-        this.id = id;
-        this.username = username;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.password = password;
-        this.email = email;
-        this.enabled = enabled;
-        this.lastPasswordResetDate = lastPasswordResetDate;
-        this.authorities = authorities;
-    }
 
     @JsonIgnore
     public Long getId() {
