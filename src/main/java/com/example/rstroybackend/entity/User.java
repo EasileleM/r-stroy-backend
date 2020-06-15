@@ -3,6 +3,7 @@ package com.example.rstroybackend.entity;
 import lombok.Data;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 import java.util.List;
 
 @Entity
@@ -11,6 +12,7 @@ import java.util.List;
 public class User extends BaseEntity {
 
     @Column(name = "username")
+    @NotBlank(message = "Введите логин")
     private String username;
 
     @Column(name = "first_name")
