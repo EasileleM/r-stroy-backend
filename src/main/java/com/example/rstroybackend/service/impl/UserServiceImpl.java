@@ -54,9 +54,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findByUsername(String username) {
-        User result = userRepo.findByUsername(username);
-        log.info("IN findByUserName - user {} found by username: {}", result, username);
+    public User findByEmail(String email) {
+        User result = userRepo.findByEmail(email);
+        if (result == null) {
+            log.info("IN findByEmail - no user found by email: {}", email);
+        } else {
+            log.info("IN findByEmail - user {} found by email: {}", result, email);
+        }
+        return result;
+    }
+
+    @Override
+    public User findByPhoneNumber(String phoneNumber) {
+        User result = userRepo.findByPhoneNumber(phoneNumber);
+        if (result == null) {
+            log.info("IN findByPhoneNumber - no user found by phoneNumber: {}", phoneNumber);
+        } else {
+            log.info("IN findByPhoneNumber - user {} found by phoneNumber: {}", result, phoneNumber);
+        }
         return result;
     }
 
@@ -77,6 +92,6 @@ public class UserServiceImpl implements UserService {
     public void delete(Long id) {
         userRepo.deleteById(id);
 
-        log.info("IN delete - user with id: {} successfully deleted");
+        log.info("IN delete - user with id: {} successfully deleted", id);
     }
 }

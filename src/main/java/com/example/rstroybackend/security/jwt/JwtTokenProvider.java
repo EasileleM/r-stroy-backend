@@ -1,7 +1,6 @@
 package com.example.rstroybackend.security.jwt;
 
 import com.example.rstroybackend.entity.Role;
-import com.example.rstroybackend.security.JwtUserDetailsService;
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,8 +38,8 @@ public class JwtTokenProvider {
     @PostConstruct
     protected void init() { secret = Base64.getEncoder().encodeToString(secret.getBytes()); }
 
-    public String createToken(String username, List<Role> roles) {
-        Claims claims = Jwts.claims().setSubject(username);
+    public String createToken(String email, List<Role> roles) {
+        Claims claims = Jwts.claims().setSubject(email);
         claims.put("roles", getRoleNames(roles));
 
         Date now = new Date();

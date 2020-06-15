@@ -11,9 +11,9 @@ import java.util.Date;
 @AllArgsConstructor
 public class JwtUser implements UserDetails {
     private final Long id;
-    private final String username;
     private final String firstName;
     private final String lastName;
+    private final String phoneNumber;
     private final String password;
     private final String email;
     private final Boolean enabled;
@@ -27,7 +27,7 @@ public class JwtUser implements UserDetails {
 
     @Override
     public String getUsername() {
-        return username;
+        return email;
     }
 
     @JsonIgnore
@@ -54,6 +54,10 @@ public class JwtUser implements UserDetails {
 
     public String getLastname() {
         return lastName;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
     public String getEmail() {

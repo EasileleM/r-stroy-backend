@@ -1,20 +1,18 @@
 package com.example.rstroybackend.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
 import java.util.List;
 
 @Entity
 @Table(name = "users")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class User extends BaseEntity {
-
-    @Column(name = "username")
-    @NotBlank(message = "Введите логин")
-    private String username;
-
     @Column(name = "first_name")
     private String firstName;
 
@@ -23,6 +21,9 @@ public class User extends BaseEntity {
 
     @Column(name = "email")
     private String email;
+
+    @Column(name = "phoneNumber")
+    private String phoneNumber;
 
     @Column(name = "password")
     private String password;
