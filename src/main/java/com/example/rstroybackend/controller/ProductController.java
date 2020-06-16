@@ -4,8 +4,12 @@ import com.example.rstroybackend.entity.Product;
 import com.example.rstroybackend.service.ProductService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -20,9 +24,10 @@ public class ProductController {
     @GetMapping("")
     public ResponseEntity getFilteredProducts( // TODO what if request empty
             @RequestParam(value="types", required=false, defaultValue = "") List<String> types,
-            @RequestParam(value="search", required = false, defaultValue = "") String search
+            @RequestParam(value="search", required = false, defaultValue = "") String search,
+            @PageableDefault(size = 30, sort = { "id" }, direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        List<Product> result = productService.findByFilters(search, types);
+        Page<Product> result = productService.findByFilters(search, types, pageable);
 
         return ResponseEntity.ok(result);
     }

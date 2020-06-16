@@ -2,8 +2,10 @@ package com.example.rstroybackend.service.impl;
 
 import com.example.rstroybackend.entity.Product;
 import com.example.rstroybackend.entity.Status;
-import com.example.rstroybackend.repository.ProductRepo;
+import com.example.rstroybackend.repo.ProductRepo;
 import com.example.rstroybackend.service.ProductService;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,23 +17,23 @@ import java.util.List;
 @Slf4j
 @AllArgsConstructor
 public class ProductServiceImpl implements ProductService {
-    private final ProductRepo productRepo; // TODO make pagination and sorting
+    private final ProductRepo productRepo; // TODO make sorting
 
     @Override
-    public List<Product> findByFilters(String search, List<String> types) {
-        List<Product> result;
+    public Page<Product> findByFilters(String search, List<String> types, Pageable pageable) {
+        Page<Product> result;
 
         if (!types.isEmpty() && !search.isEmpty()) {
-            result = productRepo.findByNameContainingIgnoreCaseAndAndTypes_NameIn(search, types);
+            result = productRepo.findByNameContainingIgnoreCaseAndAndTypes_NameIn(search, types, pageable);
         } else if (!types.isEmpty()) {
-            result = productRepo.findByTypes_NameIn(types);
+            result = productRepo.findByTypes_NameIn(types, pageable);
         } else if (!search.isEmpty()){
-            result = productRepo.findByNameContainingIgnoreCase(search);
+            result = productRepo.findByNameContainingIgnoreCase(search, pageable);
         } else {
-            result = productRepo.findAll();
+            result = productRepo.findAll(pageable);
         }
 
-        if (result.size() == 0) {
+        if (result.getSize() == 0) {
             log.warn("IN findByFilters - no products found by search: {} and types: {}", search, types);
         } else {
             log.info("IN findByFilters - product {} found by search: {} and types: {}", result, search, types);

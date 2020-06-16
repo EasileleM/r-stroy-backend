@@ -2,7 +2,7 @@ package com.example.rstroybackend.service.impl;
 
 import com.example.rstroybackend.entity.ProductType;
 import com.example.rstroybackend.entity.Status;
-import com.example.rstroybackend.repository.ProductTypeRepo;
+import com.example.rstroybackend.repo.ProductTypeRepo;
 import com.example.rstroybackend.service.ProductTypesService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

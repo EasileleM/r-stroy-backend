@@ -1,4 +1,4 @@
-package com.example.rstroybackend.repository;
+package com.example.rstroybackend.repo;
 
 import com.example.rstroybackend.entity.ProductType;
 import org.springframework.data.jpa.repository.JpaRepository;
