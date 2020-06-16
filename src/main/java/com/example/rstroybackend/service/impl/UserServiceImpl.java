@@ -28,7 +28,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User register(User user) {
-        Role roleUser = roleRepo.findByName("ROLE_USER");
+        Role roleUser = roleRepo.findByName("ROLE_USER").orElse(null);
         List<Role> userRoles = new ArrayList<>();
         userRoles.add(roleUser);
 
@@ -55,7 +55,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findByEmail(String email) {
-        User result = userRepo.findByEmail(email);
+        User result = userRepo.findByEmail(email).orElse(null);
         if (result == null) {
             log.info("IN findByEmail - no user found by email: {}", email);
         } else {
@@ -66,7 +66,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findByPhoneNumber(String phoneNumber) {
-        User result = userRepo.findByPhoneNumber(phoneNumber);
+        User result = userRepo.findByPhoneNumber(phoneNumber).orElse(null);
         if (result == null) {
             log.info("IN findByPhoneNumber - no user found by phoneNumber: {}", phoneNumber);
         } else {

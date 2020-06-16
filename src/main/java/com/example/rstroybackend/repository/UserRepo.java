@@ -3,8 +3,10 @@ package com.example.rstroybackend.repository;
 import com.example.rstroybackend.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface UserRepo extends JpaRepository<User, Long> {
-    User findByEmail(String email);
+import java.util.Optional;
 
-    User findByPhoneNumber(String phoneNumber);
+public interface UserRepo extends JpaRepository<User, Long> {
+    Optional<User> findByEmail(String email);
+
+    Optional<User> findByPhoneNumber(String phoneNumber);
 }
