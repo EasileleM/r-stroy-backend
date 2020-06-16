@@ -22,7 +22,7 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping("")
-    public ResponseEntity getFilteredProducts( // TODO what if request empty
+    public ResponseEntity getFilteredProducts(
             @RequestParam(value="types", required=false, defaultValue = "") List<String> types,
             @RequestParam(value="search", required = false, defaultValue = "") String search,
             @PageableDefault(size = 30, sort = { "id" }, direction = Sort.Direction.DESC) Pageable pageable
