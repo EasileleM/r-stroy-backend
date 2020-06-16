@@ -15,12 +15,27 @@ import java.util.List;
 @Slf4j
 @AllArgsConstructor
 public class ProductServiceImpl implements ProductService {
-    private final ProductRepo productRepo;
+    private final ProductRepo productRepo; // TODO make pagination and sorting
 
     @Override
     public List<Product> findByFilters(String search, List<String> types) {
-        List<Product> result = productRepo
-                .findByNameContainingIgnoreCaseAndAndTypes_NameIn(search, types);
+        List<Product> result;
+
+        if (!types.isEmpty() && !search.isEmpty()) {
+            result = productRepo.findByNameContainingIgnoreCaseAndAndTypes_NameIn(search, types);
+        } else if (!types.isEmpty()) {
+            result = productRepo.findByTypes_NameIn(types);
+        } else if (!search.isEmpty()){
+            result = productRepo.findByNameContainingIgnoreCase(search);
+        } else {
+            result = productRepo.findAll();
+        }
+
+        if (result.size() == 0) {
+            log.warn("IN findByFilters - no products found by search: {} and types: {}", search, types);
+        } else {
+            log.info("IN findByFilters - product {} found by search: {} and types: {}", result, search, types);
+        }
 
         return result;
     }

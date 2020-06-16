@@ -1,8 +1,7 @@
 package com.example.rstroybackend.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -21,5 +20,8 @@ public class ProductType extends BaseEntity {
     private String name;
 
     @ManyToMany(mappedBy = "types", fetch = FetchType.LAZY)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @JsonIgnore
     private List<Product> products;
 }
