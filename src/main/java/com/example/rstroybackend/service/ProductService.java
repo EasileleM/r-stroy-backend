@@ -12,5 +12,7 @@ public interface ProductService {
     List<Product> findByIds(List<Long> ids);
     Product create(Product product);
     Product update(Product product);
+    Integer getMaxPrice();
+    Integer getMinPrice();
     void delete(Long id);
 }

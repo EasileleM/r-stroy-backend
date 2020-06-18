@@ -34,7 +34,7 @@ public class AuthenticationRestControllerV1 {
 
     private UserService userService;
 
-    @PostMapping("/login")
+    @PostMapping(value = "/login")
     public ResponseEntity login(@Valid @RequestBody AuthenticationRequestDto requestDto) {
         try {
             String email = requestDto.getEmail();

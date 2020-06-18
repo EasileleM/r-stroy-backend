@@ -96,6 +96,16 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public Integer getMaxPrice() {
+        return productRepo.findByMaxPrice();
+    }
+
+    @Override
+    public Integer getMinPrice() {
+        return productRepo.findByMinPrice();
+    }
+
+    @Override
     public void delete(Long id) {
         productRepo.deleteById(id);
 
