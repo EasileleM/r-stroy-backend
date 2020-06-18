@@ -17,8 +17,8 @@ public interface ProductRepo extends JpaRepository<Product, Long> {
     Page<Product> findAll(Pageable pageable);
 
     @Query("select max(price) from Product")
-    Integer findByMaxPrice();
+    BigDecimal findByMaxPrice();
 
     @Query("select min(price) from Product")
-    Integer findByMinPrice();
+    BigDecimal findByMinPrice();
 }

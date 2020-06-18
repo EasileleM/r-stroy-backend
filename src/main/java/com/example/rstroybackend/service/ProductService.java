@@ -1,9 +1,10 @@
 package com.example.rstroybackend.service;
 
 import com.example.rstroybackend.entity.Product;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface ProductService {
@@ -12,7 +13,7 @@ public interface ProductService {
     List<Product> findByIds(List<Long> ids);
     Product create(Product product);
     Product update(Product product);
-    Integer getMaxPrice();
-    Integer getMinPrice();
+    BigDecimal getMaxPrice();
+    BigDecimal getMinPrice();
     void delete(Long id);
 }

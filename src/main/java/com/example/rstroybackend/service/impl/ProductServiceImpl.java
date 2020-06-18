@@ -98,12 +98,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Integer getMaxPrice() {
+    public BigDecimal getMaxPrice() {
         return productRepo.findByMaxPrice();
     }
 
     @Override
-    public Integer getMinPrice() {
+    public BigDecimal getMinPrice() {
         return productRepo.findByMinPrice();
     }
 
