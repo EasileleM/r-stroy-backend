@@ -31,8 +31,8 @@ public class FiltersController {
         Map<String, Object> result = new HashMap<>();
 
         result.put("types", types);
-        result.put("maxPrice", maxPrice);
-        result.put("minPrice", minPrice);
+        result.put("lowestPrice", maxPrice);
+        result.put("highestPrice", minPrice);
 
         return ResponseEntity.ok(result);
     }
