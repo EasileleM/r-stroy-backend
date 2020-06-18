@@ -13,30 +13,32 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.List;
 
+import java.math.BigDecimal;
+
 @Service
 @Slf4j
 @AllArgsConstructor
 public class ProductServiceImpl implements ProductService {
-    private final ProductRepo productRepo; // TODO make sorting
+    private final ProductRepo productRepo;
 
     @Override
-    public Page<Product> findByFilters(String search, List<String> types, Pageable pageable) {
+    public Page<Product> findByFilters(
+            String search,
+            List<String> types,
+            Integer maxPrice,
+            Integer minPrice,
+            Pageable pageable) {
         Page<Product> result;
 
-        if (!types.isEmpty() && !search.isEmpty()) {
-            result = productRepo.findByNameContainingIgnoreCaseAndAndTypes_NameIn(search, types, pageable);
-        } else if (!types.isEmpty()) {
-            result = productRepo.findByTypes_NameIn(types, pageable);
-        } else if (!search.isEmpty()){
-            result = productRepo.findByNameContainingIgnoreCase(search, pageable);
-        } else {
-            result = productRepo.findAll(pageable);
-        }
+        BigDecimal maxPriceBigDecimal = maxPrice == null ? null : new BigDecimal(maxPrice);
+        BigDecimal minPriceBigDecimal = minPrice == null ? null : new BigDecimal(minPrice);
+
+        result = productRepo.findByFilters(search, types, maxPriceBigDecimal, minPriceBigDecimal, pageable);
 
         if (result.getSize() == 0) {
-            log.warn("IN findByFilters - no products found by search: {} and types: {}", search, types);
+            log.warn("IN findByFilters - no products found by search: {} types: {} maxPrice: {} minPrice: {}", search, types, maxPrice, minPrice);
         } else {
-            log.info("IN findByFilters - product {} found by search: {} and types: {}", result, search, types);
+            log.info("IN findByFilters - product {} found by search: {} types: {} maxPrice: {} minPrice: {}", result, search, types, maxPrice, minPrice);
         }
 
         return result;

@@ -4,12 +4,11 @@ import com.example.rstroybackend.entity.Product;
 import com.example.rstroybackend.service.ProductService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Page;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -23,11 +22,27 @@ public class ProductController {
 
     @GetMapping("")
     public ResponseEntity getFilteredProducts(
-            @RequestParam(value="types", required=false, defaultValue = "") List<String> types,
+            @RequestParam(value="type", required=false) List<String> types,
             @RequestParam(value="search", required = false, defaultValue = "") String search,
+            @RequestParam(value="maxPrice", required = false) Integer maxPrice,
+            @RequestParam(value="minPrice", required = false) Integer minPrice,
+            @RequestParam(value="id", required=false) List<Long> ids,
             @PageableDefault(size = 30, sort = { "id" }, direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Page<Product> result = productService.findByFilters(search, types, pageable);
+        log.info(search + " search result");
+        Object result;
+        if (ids == null) {
+            result = productService.findByFilters(search, types, maxPrice, minPrice, pageable);
+        } else {
+            result = productService.findByIds(ids);
+        }
+
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("{id}")
+    public ResponseEntity getProductById(@PathVariable Long id) {
+        Product result = productService.findById(id);
 
         return ResponseEntity.ok(result);
     }

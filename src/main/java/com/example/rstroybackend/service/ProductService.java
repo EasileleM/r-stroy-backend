@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 import java.util.List;
 
 public interface ProductService {
-    Page<Product> findByFilters(String name, List<String> types, Pageable pageable);
+    Page<Product> findByFilters(String name, List<String> types, Integer maxPrice, Integer minPrice, Pageable pageable);
     Product findById(Long id);
     List<Product> findByIds(List<Long> ids);
     Product create(Product product);
