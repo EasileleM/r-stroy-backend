@@ -9,7 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -44,8 +45,8 @@ public class ProductTypesServiceImpl implements ProductTypesService {
     }
 
     @Override
-    public List<ProductType> findAll() {
-        List<ProductType> result = productTypeRepo.findAll();
+    public Set<ProductType> findAll() {
+        Set<ProductType> result = new HashSet<>(productTypeRepo.findAll());
 
         log.info("IN findAll - productsTypes: {} found", result);
 

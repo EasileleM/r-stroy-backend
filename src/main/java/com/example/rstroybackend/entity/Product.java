@@ -5,9 +5,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import javax.validation.constraints.*;
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.Size;
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "products")
@@ -15,25 +18,20 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Product extends BaseEntity {
-    @Column(name = "name")
     @NotBlank(message = "Название обязательно")
     @Size(min = 2, max = 50, message = "Название должно содержать больше двух и меньше 50ти символов")
     private String name;
 
-    @Column(name = "description")
     @NotBlank(message = "Описание обязательно")
     @Size(min = 10, max = 1050, message = "Описание должно содержать больше десяти и меньше 1050ти символов")
     private String description;
 
-    @Column(name = "amount")
     @Positive(message = "Количество обязательно")
     private Integer amount;
 
-    @Column(name = "price")
     @DecimalMin(value = "0.0", inclusive = false, message = "Цена обязательна")
     private BigDecimal price;
 
-    @Column(name = "imageURL")
     @NotBlank(message = "Картинка обязательна")
     private String imageURL;
 
@@ -43,5 +41,5 @@ public class Product extends BaseEntity {
             joinColumns = {@JoinColumn(name = "product_id", referencedColumnName = "id")},
             inverseJoinColumns = {@JoinColumn(name = "type_id", referencedColumnName = "id")}
     )
-    private List<ProductType> types;
+    private Set<ProductType> types;
 }

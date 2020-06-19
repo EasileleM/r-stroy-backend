@@ -9,7 +9,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.List;
+import java.util.Set;
 
 @RestController
 @AllArgsConstructor
@@ -21,7 +21,7 @@ public class ProductTypeController {
 
     @GetMapping("")
     public ResponseEntity getAllProductTypes() {
-        List<ProductType> result = productTypesService.findAll();
+        Set<ProductType> result = productTypesService.findAll();
 
         return ResponseEntity.ok(result);
     }

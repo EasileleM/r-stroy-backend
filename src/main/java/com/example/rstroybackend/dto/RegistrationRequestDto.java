@@ -37,6 +37,9 @@ public class RegistrationRequestDto {
                 email,
                 phoneNumber,
                 password,
+                null,
+                null,
+                null,
                 null
         );
     }

@@ -11,9 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -29,7 +27,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User register(User user) {
         Role roleUser = roleRepo.findByName("ROLE_USER").orElse(null);
-        List<Role> userRoles = new ArrayList<>();
+        Set<Role> userRoles = new HashSet<>();
         userRoles.add(roleUser);
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -46,8 +44,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> getAll() {
-        List<User> result = userRepo.findAll();
+    public Set<User> getAll() {
+        Set<User> result = new HashSet<>(userRepo.findAll());
 
         log.info("IN getAll - {} users found", result.size());
         return result;

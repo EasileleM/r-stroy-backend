@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @AllArgsConstructor
@@ -27,7 +27,7 @@ public class ProductController {
 
     @GetMapping("/api/v1/commons/products/filters")
     public ResponseEntity getFilters() {
-        List<ProductType> types = productTypesService.findAll();
+        Set<ProductType> types = productTypesService.findAll();
         Double maxPrice = Math.ceil(productService.getMaxPrice().doubleValue());
         Double minPrice = Math.floor(productService.getMinPrice().doubleValue());;
 
@@ -42,11 +42,11 @@ public class ProductController {
 
     @GetMapping("/api/v1/commons/products")
     public ResponseEntity getFilteredProducts(
-            @RequestParam(value="type", required=false) List<String> types,
+            @RequestParam(value="type", required=false) Set<String> types,
             @RequestParam(value="search", required = false, defaultValue = "") String search,
             @RequestParam(value="maxPrice", required = false) Integer maxPrice,
             @RequestParam(value="minPrice", required = false) Integer minPrice,
-            @RequestParam(value="id", required=false) List<Long> ids,
+            @RequestParam(value="id", required=false) Set<Long> ids,
             @PageableDefault(size = 30, sort = { "id" }, direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Object result;

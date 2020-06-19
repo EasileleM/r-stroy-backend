@@ -2,12 +2,12 @@ package com.example.rstroybackend.service;
 
 import com.example.rstroybackend.entity.User;
 
-import java.util.List;
+import java.util.Set;
 
 public interface UserService {
     User register(User user);
 
-    List<User> getAll();
+    Set<User> getAll();
 
     User findByEmail(String email);
 

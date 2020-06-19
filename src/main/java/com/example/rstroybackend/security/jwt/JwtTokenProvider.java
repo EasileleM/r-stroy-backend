@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -40,7 +41,7 @@ public class JwtTokenProvider {
     @PostConstruct
     protected void init() { secret = Base64.getEncoder().encodeToString(secret.getBytes()); }
 
-    public String createToken(String email, List<Role> roles) {
+    public String createToken(String email, Set<Role> roles) {
         Claims claims = Jwts.claims().setSubject(email);
         claims.put("roles", getRoleNames(roles));
 
@@ -90,7 +91,7 @@ public class JwtTokenProvider {
         }
     }
 
-    private List<String> getRoleNames(List<Role> userRoles) {
+    private List<String> getRoleNames(Set<Role> userRoles) {
         return userRoles.stream()
                 .map(role -> role.getName())
                 .collect(Collectors.toList());

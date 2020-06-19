@@ -6,19 +6,18 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import javax.persistence.*;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "roles")
 @Data
 public class Role extends BaseEntity {
 
-    @Column(name = "name")
     private String name;
 
     @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @JsonIgnore
-    private List<User> users;
+    private Set<User> users;
 }

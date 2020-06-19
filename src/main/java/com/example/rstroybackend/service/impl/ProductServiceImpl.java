@@ -4,16 +4,16 @@ import com.example.rstroybackend.entity.Product;
 import com.example.rstroybackend.entity.Status;
 import com.example.rstroybackend.repo.ProductRepo;
 import com.example.rstroybackend.service.ProductService;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Page;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
-
 import java.math.BigDecimal;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -24,7 +24,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Page<Product> findByFilters(
             String search,
-            List<String> types,
+            Iterable<String> types,
             Integer maxPrice,
             Integer minPrice,
             Pageable pageable) {
@@ -58,8 +58,8 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<Product> findByIds(List<Long> ids) {
-        List<Product> result = productRepo.findAllById(ids);
+    public Set<Product> findByIds(Iterable<Long> ids) {
+        Set<Product> result = new HashSet<>(productRepo.findAllById(ids));
 
         log.info("IN findByIds - products {} found by ids: {}", result, ids);
 

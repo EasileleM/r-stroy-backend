@@ -5,12 +5,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.Set;
 
 public interface ProductService {
-    Page<Product> findByFilters(String name, List<String> types, Integer maxPrice, Integer minPrice, Pageable pageable);
+    Page<Product> findByFilters(String name, Iterable<String> types, Integer maxPrice, Integer minPrice, Pageable pageable);
     Product findById(Long id);
-    List<Product> findByIds(List<Long> ids);
+    Set<Product> findByIds(Iterable<Long> ids);
     Product create(Product product);
     Product update(Product product);
     BigDecimal getMaxPrice();

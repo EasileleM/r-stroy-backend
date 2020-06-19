@@ -6,7 +6,7 @@ import lombok.*;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "types")
@@ -23,5 +23,5 @@ public class ProductType extends BaseEntity {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @JsonIgnore
-    private List<Product> products;
+    private Set<Product> products;
 }
