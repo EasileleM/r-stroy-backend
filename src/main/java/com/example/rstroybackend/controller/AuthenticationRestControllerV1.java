@@ -26,7 +26,7 @@ import java.util.Map;
 @RestController
 @AllArgsConstructor
 @Slf4j
-@RequestMapping(value = "/api/v1/auth")
+@RequestMapping(value = "/api/v1/commons/auth")
 public class AuthenticationRestControllerV1 {
     private AuthenticationManager authenticationManager;
 

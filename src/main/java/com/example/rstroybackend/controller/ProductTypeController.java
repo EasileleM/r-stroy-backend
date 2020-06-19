@@ -5,6 +5,7 @@ import com.example.rstroybackend.service.ProductTypesService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -13,7 +14,8 @@ import java.util.List;
 @RestController
 @AllArgsConstructor
 @Slf4j
-@RequestMapping(value = "/api/v1/productTypes")
+@Secured("ROLE_ADMIN")
+@RequestMapping(value = "/api/v1/admin/productTypes")
 public class ProductTypeController {
     private final ProductTypesService productTypesService;
 
@@ -24,7 +26,7 @@ public class ProductTypeController {
         return ResponseEntity.ok(result);
     }
 
-    @PostMapping("") // TODO move it to admin controller then
+    @PostMapping("")
     public ResponseEntity createProductType(
             @Valid @RequestBody ProductType productType
     ) {
@@ -33,7 +35,7 @@ public class ProductTypeController {
         return ResponseEntity.ok(null);
     }
 
-    @PutMapping("")
+    @PatchMapping("")
     public ResponseEntity updateProductType(
             @Valid @RequestBody ProductType productType
     ) {
@@ -42,7 +44,7 @@ public class ProductTypeController {
         return ResponseEntity.ok(null);
     }
 
-    @DeleteMapping("") // TODO make delete enabled disabled things work
+    @DeleteMapping("")
     public ResponseEntity deleteProductType(
             @Valid @RequestBody ProductType productType
     ) {

@@ -46,6 +46,9 @@ public class ProductTypesServiceImpl implements ProductTypesService {
     @Override
     public List<ProductType> findAll() {
         List<ProductType> result = productTypeRepo.findAll();
+
+        log.info("IN findAll - productsTypes: {} found", result);
+
         return result;
     }
 
@@ -57,7 +60,7 @@ public class ProductTypesServiceImpl implements ProductTypesService {
 
         ProductType createdProductType = productTypeRepo.save(type);
 
-        log.info("IN create - productTyp: {} successfully created", createdProductType);
+        log.info("IN create - productType: {} successfully created", createdProductType);
 
         return createdProductType;
     }
@@ -71,7 +74,7 @@ public class ProductTypesServiceImpl implements ProductTypesService {
 
         ProductType updatedProduct = productTypeRepo.save(type);
 
-        log.info("IN update - existedProduct: {} successfully updated", updatedProduct);
+        log.info("IN update - existedProductType: {} successfully updated", updatedProduct);
 
         return updatedProduct;
     }
