@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +37,7 @@ public class AuthenticationRestControllerV1 {
     private UserService userService;
 
     @PostMapping(value = "/login")
-    public ResponseEntity login(@Valid @RequestBody AuthenticationRequestDto requestDto) {
+    public ResponseEntity login(@Valid @RequestBody AuthenticationRequestDto requestDto, HttpServletResponse response) {
         try {
             String email = requestDto.getEmail();
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, requestDto.getPassword()));
@@ -47,14 +49,28 @@ public class AuthenticationRestControllerV1 {
 
             String token = jwtTokenProvider.createToken(email, user.getRoles());
 
-            Map<Object, Object> response= new HashMap<>();
-            response.put("email", email);
-            response.put("token", token);
+            Cookie cookie = new Cookie("JWTBEARERTOKEN", "Bearer_" + token);
+            cookie.setHttpOnly(true);
+            cookie.setPath("/");
 
-            return ResponseEntity.ok(response);
+            response.addCookie(cookie);
+
+            return ResponseEntity.ok(null);
         } catch (AuthenticationException e) {
             throw new BadCredentialsException("Invalid email or password");
         }
+    }
+
+    @PostMapping(value = "/logout")
+    public ResponseEntity logout(HttpServletResponse response) {
+        Cookie cookie = new Cookie("JWTBEARERTOKEN", null);
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+
+        response.addCookie(cookie);
+
+        return ResponseEntity.ok(null);
     }
 
     @PostMapping("/registration")

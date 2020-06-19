@@ -18,8 +18,16 @@ public class RStroyBackendApplication {
 		return new WebMvcConfigurer() {
 			@Override
 			public void addCorsMappings(CorsRegistry registry) {
-				registry.addMapping("/api/v1/commons/**").allowedOrigins("http://localhost:3000"); // User app
-				registry.addMapping("/api/v1/**").allowedOrigins("http://localhost:3222"); // Admin app
+				registry
+						.addMapping("/api/v1/commons/**")
+						.allowCredentials(true)
+						.maxAge(3600)
+						.allowedOrigins("http://localhost:3000"); // User app
+				registry
+						.addMapping("/api/v1/**")
+						.allowCredentials(true)
+						.maxAge(3600)
+						.allowedOrigins("http://localhost:3222"); // Admin app
 			}
 		};
 	}
