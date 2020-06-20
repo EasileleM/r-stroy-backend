@@ -1,8 +1,7 @@
 package com.example.rstroybackend.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.DecimalMin;
@@ -42,4 +41,10 @@ public class Product extends BaseEntity {
             inverseJoinColumns = {@JoinColumn(name = "type_id", referencedColumnName = "id")}
     )
     private Set<ProductType> types;
+
+    @ManyToMany(mappedBy = "favoritesProducts", fetch = FetchType.LAZY)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @JsonIgnore
+    private Set<User> users;
 }

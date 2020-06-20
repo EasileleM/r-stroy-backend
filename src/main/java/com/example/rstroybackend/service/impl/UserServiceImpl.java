@@ -1,8 +1,9 @@
 package com.example.rstroybackend.service.impl;
 
-import com.example.rstroybackend.entity.Role;
-import com.example.rstroybackend.entity.Status;
-import com.example.rstroybackend.entity.User;
+import com.example.rstroybackend.dto.ProductIdDto;
+import com.example.rstroybackend.dto.StashedProductDto;
+import com.example.rstroybackend.entity.*;
+import com.example.rstroybackend.repo.ProductRepo;
 import com.example.rstroybackend.repo.RoleRepo;
 import com.example.rstroybackend.repo.UserRepo;
 import com.example.rstroybackend.service.UserService;
@@ -11,7 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -19,6 +22,8 @@ import java.util.*;
 public class UserServiceImpl implements UserService {
 
     private final UserRepo userRepo;
+
+    private final ProductRepo productRepo;
 
     private final RoleRepo roleRepo;
 
@@ -69,6 +74,63 @@ public class UserServiceImpl implements UserService {
             log.info("IN findByPhoneNumber - no user found by phoneNumber: {}", phoneNumber);
         } else {
             log.info("IN findByPhoneNumber - user {} found by phoneNumber: {}", result, phoneNumber);
+        }
+        return result;
+    }
+
+    @Override
+    public User updateUserCart(Set<StashedProductDto> cartProducts, Long id) {
+        User currentUser = userRepo.findById(id).orElse(null);
+
+        Set<StashedProduct> newCartProducts = new HashSet<>();
+
+        for (StashedProductDto stashedProductDto: cartProducts) {
+            StashedProduct stashedProduct = new StashedProduct();
+            Product product = productRepo.findById(stashedProductDto.getProductId()).orElse(null);
+            if (product != null) {
+                stashedProduct.setProduct(product);
+                stashedProduct.setAmountInStash(stashedProductDto.getAmountInStash());
+                stashedProduct.setCreated(new Date());
+                stashedProduct.setUpdated(new Date());
+                stashedProduct.setStatus(Status.ACTIVE);
+
+                newCartProducts.add(stashedProduct);
+            }
+        }
+
+        currentUser.setCartProducts(newCartProducts);
+
+        User result = userRepo.save(currentUser);
+
+        if (result == null) {
+            log.info("IN updateUserCart - user with id: {} update with: {} failed", id, newCartProducts);
+        } else {
+            log.info("IN updateUserCart - user with id: {} successfully updated with: {}", id, newCartProducts);
+        }
+        return result;
+    }
+
+    @Override
+    public User updateUserFavorites(Set<ProductIdDto> favoritesProductsIds, Long id) {
+        User currentUser = userRepo.findById(id).orElse(null);
+
+        Set<Product> newFavoritesProducts = new HashSet<>();
+
+        for (ProductIdDto productIdDto: favoritesProductsIds) {
+            Product product = productRepo.findById(productIdDto.getId()).orElse(null);
+            if (product != null) {
+                newFavoritesProducts.add(product);
+            }
+        }
+
+        currentUser.setFavoritesProducts(newFavoritesProducts);
+
+        User result = userRepo.save(currentUser);
+
+        if (result == null) {
+            log.info("IN updateUserFavorites - user with id: {} successfully updated with: {}", id, newFavoritesProducts);
+        } else {
+            log.info("IN updateUserFavorites - user with id: {} update with: {} failed", id, newFavoritesProducts);
         }
         return result;
     }

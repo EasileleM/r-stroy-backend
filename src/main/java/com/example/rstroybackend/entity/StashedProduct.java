@@ -16,13 +16,5 @@ public class StashedProduct extends BaseEntity {
     @JoinColumn(name = "product_id", referencedColumnName = "id")
     private Product product;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name="order_id")
-    private Order order;
-
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name="user_id")
-    private User user;
-
     private Integer amountInStash;
 }

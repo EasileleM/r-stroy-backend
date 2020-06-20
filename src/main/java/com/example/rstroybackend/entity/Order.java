@@ -15,7 +15,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Order extends BaseEntity {
-    @OneToMany(fetch = FetchType.EAGER, mappedBy="order", cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<StashedProduct> stashedProducts;
 
     @ManyToOne(cascade = CascadeType.ALL)

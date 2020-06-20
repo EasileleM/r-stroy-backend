@@ -17,16 +17,16 @@ public class JwtUserDetailsService implements UserDetailsService {
     private final UserService userService;
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userService.findByEmail(email);
+    public UserDetails loadUserByUsername(String id) throws UsernameNotFoundException {
+        User user = userService.findById(Long.parseLong(id));
 
         if (user == null) {
-            throw new UsernameNotFoundException("User with username: " + email + " not found");
+            throw new UsernameNotFoundException("User with id: " + id + " not found");
         }
 
         JwtUser jwtUser = JwtUserFactory.create(user);
 
-        log.info("IN loadUserByUsername - user with username: {} successfully loaded", email);
+        log.info("IN loadUserByUsername - user with id: {} successfully loaded", id);
 
         return jwtUser;
     }

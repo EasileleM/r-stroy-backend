@@ -47,11 +47,17 @@ public class User extends BaseEntity {
     )
     private Set<Role> roles;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy="user", cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinColumn(name = "cart_user_id")
     private Set<StashedProduct> cartProducts;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy="user", cascade = CascadeType.ALL)
-    private Set<StashedProduct> favoritesProducts;
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "user_favorites",
+            joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")},
+            inverseJoinColumns = {@JoinColumn(name = "product_id", referencedColumnName = "id")}
+    )
+    private Set<Product> favoritesProducts;
 
     @OneToMany(fetch = FetchType.EAGER, mappedBy="user", cascade = CascadeType.ALL)
     private Set<Order> orders;

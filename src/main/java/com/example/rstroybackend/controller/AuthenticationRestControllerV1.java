@@ -40,14 +40,16 @@ public class AuthenticationRestControllerV1 {
     public ResponseEntity login(@Valid @RequestBody AuthenticationRequestDto requestDto, HttpServletResponse response) {
         try {
             String email = requestDto.getEmail();
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, requestDto.getPassword()));
             User user = userService.findByEmail(email);
+            Long userId = user.getId();
 
             if (user == null) {
                 throw new UsernameNotFoundException("User with email: " + email + " not found");
             }
 
-            String token = jwtTokenProvider.createToken(email, user.getRoles());
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userId, requestDto.getPassword()));
+
+            String token = jwtTokenProvider.createToken(userId, user.getRoles());
 
             Cookie cookie = new Cookie("JWTBEARERTOKEN", "Bearer_" + token);
             cookie.setHttpOnly(true);
