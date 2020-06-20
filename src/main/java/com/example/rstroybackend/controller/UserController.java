@@ -1,7 +1,9 @@
 package com.example.rstroybackend.controller;
 
+import com.example.rstroybackend.dto.CreateOrderDto;
 import com.example.rstroybackend.dto.ProductIdDto;
 import com.example.rstroybackend.dto.StashedProductDto;
+import com.example.rstroybackend.entity.Order;
 import com.example.rstroybackend.entity.User;
 import com.example.rstroybackend.service.UserService;
 import lombok.AllArgsConstructor;
@@ -24,7 +26,6 @@ public class UserController {
 
     @GetMapping("")
     public ResponseEntity currentUser(@AuthenticationPrincipal UserDetails userDetails) {
-        log.warn(userDetails.getUsername());
         User currentUser = userService.findById(Long.parseLong(userDetails.getUsername()));
         return ResponseEntity.ok(currentUser);
     }
@@ -39,5 +40,11 @@ public class UserController {
     public ResponseEntity patchCart(@AuthenticationPrincipal UserDetails userDetails, @RequestBody Set<StashedProductDto> products) {
         userService.updateUserCart(products, Long.parseLong(userDetails.getUsername()));
         return ResponseEntity.ok(null);
+    }
+
+    @PostMapping("/orders")
+    public ResponseEntity createOrder(@AuthenticationPrincipal UserDetails userDetails, @RequestBody CreateOrderDto order) {
+        Order result = userService.createOrder(order, Long.parseLong(userDetails.getUsername()));
+        return ResponseEntity.ok(result.getId());
     }
 }

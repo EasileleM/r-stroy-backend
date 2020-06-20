@@ -1,8 +1,10 @@
 package com.example.rstroybackend.service.impl;
 
+import com.example.rstroybackend.dto.CreateOrderDto;
 import com.example.rstroybackend.dto.ProductIdDto;
 import com.example.rstroybackend.dto.StashedProductDto;
 import com.example.rstroybackend.entity.*;
+import com.example.rstroybackend.enums.OrderStatus;
 import com.example.rstroybackend.repo.ProductRepo;
 import com.example.rstroybackend.repo.RoleRepo;
 import com.example.rstroybackend.repo.UserRepo;
@@ -87,15 +89,13 @@ public class UserServiceImpl implements UserService {
         for (StashedProductDto stashedProductDto: cartProducts) {
             StashedProduct stashedProduct = new StashedProduct();
             Product product = productRepo.findById(stashedProductDto.getProductId()).orElse(null);
-            if (product != null) {
-                stashedProduct.setProduct(product);
-                stashedProduct.setAmountInStash(stashedProductDto.getAmountInStash());
-                stashedProduct.setCreated(new Date());
-                stashedProduct.setUpdated(new Date());
-                stashedProduct.setStatus(Status.ACTIVE);
+            stashedProduct.setProduct(product);
+            stashedProduct.setAmountInStash(stashedProductDto.getAmountInStash());
+            stashedProduct.setCreated(new Date());
+            stashedProduct.setUpdated(new Date());
+            stashedProduct.setStatus(Status.ACTIVE);
 
-                newCartProducts.add(stashedProduct);
-            }
+            newCartProducts.add(stashedProduct);
         }
 
         currentUser.setCartProducts(newCartProducts);
@@ -111,6 +111,60 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Order createOrder(CreateOrderDto order, Long id) {
+        User currentUser = userRepo.findById(id).orElse(null);
+
+        Order newOrder = new Order();
+
+        newOrder.setCreated(new Date());
+        newOrder.setUpdated(new Date());
+        newOrder.setStatus(Status.ACTIVE);
+        newOrder.setOrderStatus(OrderStatus.REGISTRATION);
+        newOrder.setDescription(order.getDescription());
+        newOrder.setArrivalPoint(order.getArrivalPoint());
+
+        Set<StashedProduct> orderProducts = new HashSet<>();
+
+        for (StashedProductDto stashedProductDto: order.getStashedProductDtos()) {
+            StashedProduct stashedProduct = new StashedProduct();
+            Product product = productRepo.findById(stashedProductDto.getProductId()).orElse(null);
+            stashedProduct.setProduct(product);
+            stashedProduct.setAmountInStash(stashedProductDto.getAmountInStash());
+            stashedProduct.setCreated(new Date());
+            stashedProduct.setUpdated(new Date());
+            stashedProduct.setStatus(Status.ACTIVE);
+
+            // TODO decrement products amount and disable if 0
+            orderProducts.add(stashedProduct);
+        }
+
+        newOrder.setStashedProducts(orderProducts);
+
+        currentUser.addOrder(newOrder);
+
+        User result = userRepo.save(currentUser);
+
+        Order createdOrder = result
+                .getOrders()
+                .stream()
+                .sorted((order1, order2) -> order2.getCreated().compareTo(order1.getCreated()))
+                .findFirst()
+                .get();
+
+        if (result == null) {
+            log.info("IN createOrder - user with id: {} order creation: {} failed", id, newOrder);
+        } else {
+            log.info("IN createOrder - user with id: {} successfully created order: {}", id, newOrder);
+        }
+        return createdOrder;
+    }
+
+    @Override
+    public void cancelOrder(Order order, Long id) {
+
+    }
+
+    @Override
     public User updateUserFavorites(Set<ProductIdDto> favoritesProductsIds, Long id) {
         User currentUser = userRepo.findById(id).orElse(null);
 
@@ -118,9 +172,7 @@ public class UserServiceImpl implements UserService {
 
         for (ProductIdDto productIdDto: favoritesProductsIds) {
             Product product = productRepo.findById(productIdDto.getId()).orElse(null);
-            if (product != null) {
-                newFavoritesProducts.add(product);
-            }
+            newFavoritesProducts.add(product);
         }
 
         currentUser.setFavoritesProducts(newFavoritesProducts);
@@ -128,9 +180,9 @@ public class UserServiceImpl implements UserService {
         User result = userRepo.save(currentUser);
 
         if (result == null) {
-            log.info("IN updateUserFavorites - user with id: {} successfully updated with: {}", id, newFavoritesProducts);
-        } else {
             log.info("IN updateUserFavorites - user with id: {} update with: {} failed", id, newFavoritesProducts);
+        } else {
+            log.info("IN updateUserFavorites - user with id: {} successfully updated with: {}", id, newFavoritesProducts);
         }
         return result;
     }

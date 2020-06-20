@@ -1,6 +1,7 @@
 package com.example.rstroybackend.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -38,8 +39,9 @@ public class User extends BaseEntity {
     @JsonIgnore
     private String password;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JsonIgnore
+    @JsonManagedReference
     @JoinTable(
             name = "user_roles",
             joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")},
@@ -47,7 +49,7 @@ public class User extends BaseEntity {
     )
     private Set<Role> roles;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "cart_user_id")
     private Set<StashedProduct> cartProducts;
 
@@ -59,6 +61,21 @@ public class User extends BaseEntity {
     )
     private Set<Product> favoritesProducts;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy="user", cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy="user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private Set<Order> orders;
+
+    public void addOrder(Order order) {
+        order.setUser(this);
+        orders.add(order);
+    }
+
+    public void setCartProducts(Set<StashedProduct> cartProducts) {
+        if (this.cartProducts == null) {
+            this.cartProducts = cartProducts;
+        } else {
+            this.cartProducts.retainAll(cartProducts);
+            this.cartProducts.addAll(cartProducts);
+        }
+    }
 }
