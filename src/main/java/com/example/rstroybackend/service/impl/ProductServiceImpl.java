@@ -1,7 +1,7 @@
 package com.example.rstroybackend.service.impl;
 
 import com.example.rstroybackend.entity.Product;
-import com.example.rstroybackend.entity.Status;
+import com.example.rstroybackend.enums.Status;
 import com.example.rstroybackend.repo.ProductRepo;
 import com.example.rstroybackend.service.ProductService;
 import lombok.AllArgsConstructor;

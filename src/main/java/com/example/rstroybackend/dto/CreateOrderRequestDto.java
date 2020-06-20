@@ -7,7 +7,7 @@ import javax.validation.constraints.NotEmpty;
 import java.util.Set;
 
 @Data
-public class CreateOrderDto {
+public class CreateOrderRequestDto {
     @NotEmpty
     @NotBlank
     private Set<StashedProductDto> stashedProductDtos;

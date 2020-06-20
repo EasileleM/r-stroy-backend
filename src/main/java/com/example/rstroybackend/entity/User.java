@@ -70,6 +70,11 @@ public class User extends BaseEntity {
         orders.add(order);
     }
 
+    public void removeOrder(Order order) {
+        order.setUser(null);
+        orders.remove(order);
+    }
+
     public void setCartProducts(Set<StashedProduct> cartProducts) {
         if (this.cartProducts == null) {
             this.cartProducts = cartProducts;

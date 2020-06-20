@@ -1,16 +1,19 @@
 package com.example.rstroybackend.service.impl;
 
-import com.example.rstroybackend.dto.CreateOrderDto;
+import com.example.rstroybackend.dto.CreateOrderRequestDto;
 import com.example.rstroybackend.dto.ProductIdDto;
 import com.example.rstroybackend.dto.StashedProductDto;
+import com.example.rstroybackend.dto.UpdateUserRequestDto;
 import com.example.rstroybackend.entity.*;
 import com.example.rstroybackend.enums.OrderStatus;
+import com.example.rstroybackend.enums.Status;
 import com.example.rstroybackend.repo.ProductRepo;
 import com.example.rstroybackend.repo.RoleRepo;
 import com.example.rstroybackend.repo.UserRepo;
 import com.example.rstroybackend.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -81,7 +84,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User updateUserCart(Set<StashedProductDto> cartProducts, Long id) {
+    public User updateCart(Set<StashedProductDto> cartProducts, Long id) {
         User currentUser = userRepo.findById(id).orElse(null);
 
         Set<StashedProduct> newCartProducts = new HashSet<>();
@@ -111,7 +114,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Order createOrder(CreateOrderDto order, Long id) {
+    public Order createOrder(CreateOrderRequestDto order, Long id) {
         User currentUser = userRepo.findById(id).orElse(null);
 
         Order newOrder = new Order();
@@ -160,12 +163,53 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void cancelOrder(Order order, Long id) {
+    public User update(UpdateUserRequestDto updateUserRequestDto, Long id) {
+        User currentUser = userRepo.findById(id).orElse(null);
 
+        if (!passwordEncoder.matches(updateUserRequestDto.getPassword(), currentUser.getPassword())) {
+            throw new BadCredentialsException("Invalid password");
+        }
+
+        currentUser.setEmail(updateUserRequestDto.getEmail());
+        currentUser.setPhoneNumber(updateUserRequestDto.getPhoneNumber());
+        currentUser.setFirstName(updateUserRequestDto.getFirstName());
+        currentUser.setLastName(updateUserRequestDto.getLastName());
+
+        String newPassword = updateUserRequestDto.getNewPassword();
+        if (newPassword != null && newPassword.length() != 0) {
+            currentUser.setPassword(passwordEncoder.encode(newPassword));
+        }
+
+        User result = userRepo.save(currentUser);
+
+        if (result == null) {
+            log.info("IN update - user with id: {} update: {} failed", id, result);
+        } else {
+            log.info("IN update - user with id: {} successfully updated: {}", id, result);
+        }
+
+        return result;
     }
 
     @Override
-    public User updateUserFavorites(Set<ProductIdDto> favoritesProductsIds, Long id) {
+    public void cancelOrder(Long orderId, Long id) {
+        User currentUser = userRepo.findById(id).orElse(null);
+
+        Order canceledOrder = currentUser.getOrders().stream().filter(order -> order.getId() == orderId).findFirst().get();
+
+        currentUser.removeOrder(canceledOrder);
+
+        User result = userRepo.save(currentUser);
+
+        if (result == null) {
+            log.info("IN cancelOrder - user with id: {} order cancellation: {} failed", id, canceledOrder);
+        } else {
+            log.info("IN cancelOrder - user with id: {} successfully canceled order: {}", id, canceledOrder);
+        }
+    }
+
+    @Override
+    public User updateFavorites(Set<ProductIdDto> favoritesProductsIds, Long id) {
         User currentUser = userRepo.findById(id).orElse(null);
 
         Set<Product> newFavoritesProducts = new HashSet<>();

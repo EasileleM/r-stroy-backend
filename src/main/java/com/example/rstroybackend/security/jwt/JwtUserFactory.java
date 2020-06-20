@@ -1,7 +1,7 @@
 package com.example.rstroybackend.security.jwt;
 
 import com.example.rstroybackend.entity.Role;
-import com.example.rstroybackend.entity.Status;
+import com.example.rstroybackend.enums.Status;
 import com.example.rstroybackend.entity.User;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;

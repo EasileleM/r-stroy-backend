@@ -1,8 +1,9 @@
 package com.example.rstroybackend.service;
 
-import com.example.rstroybackend.dto.CreateOrderDto;
+import com.example.rstroybackend.dto.CreateOrderRequestDto;
 import com.example.rstroybackend.dto.ProductIdDto;
 import com.example.rstroybackend.dto.StashedProductDto;
+import com.example.rstroybackend.dto.UpdateUserRequestDto;
 import com.example.rstroybackend.entity.Order;
 import com.example.rstroybackend.entity.User;
 
@@ -19,13 +20,15 @@ public interface UserService {
 
     User findById(Long id);
 
-    User updateUserFavorites(Set<ProductIdDto> favoritesProductsIds, Long id);
+    User updateFavorites(Set<ProductIdDto> favoritesProductsIds, Long id);
 
-    User updateUserCart(Set<StashedProductDto> cartProducts, Long id);
+    User updateCart(Set<StashedProductDto> cartProducts, Long id);
 
-    Order createOrder(CreateOrderDto order, Long id);
+    Order createOrder(CreateOrderRequestDto order, Long id);
 
-    void cancelOrder(Order order, Long id);
+    User update(UpdateUserRequestDto updateUserRequestDto, Long id);
+
+    void cancelOrder(Long orderId, Long id);
 
     void delete(Long id);
 }
