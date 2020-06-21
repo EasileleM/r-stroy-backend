@@ -2,6 +2,7 @@ package com.example.rstroybackend.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
@@ -11,7 +12,7 @@ import java.util.Set;
 @Entity
 @Table(name = "products")
 @Data
-@Builder
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
 public class Product extends BaseEntity {

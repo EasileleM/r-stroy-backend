@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
+import java.util.Map;
 import java.util.Set;
 
 public interface ProductService {
@@ -15,5 +16,6 @@ public interface ProductService {
     Product update(Product product);
     BigDecimal getMaxPrice();
     BigDecimal getMinPrice();
-    void delete(Long id);
+    Map<String, Object> getFilters();
+    void delete(Product id);
 }

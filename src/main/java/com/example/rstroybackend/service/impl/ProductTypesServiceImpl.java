@@ -2,6 +2,8 @@ package com.example.rstroybackend.service.impl;
 
 import com.example.rstroybackend.entity.ProductType;
 import com.example.rstroybackend.enums.Status;
+import com.example.rstroybackend.exceptions.InternalServerErrorException;
+import com.example.rstroybackend.exceptions.ResourceNotFoundException;
 import com.example.rstroybackend.repo.ProductTypeRepo;
 import com.example.rstroybackend.service.ProductTypesService;
 import lombok.AllArgsConstructor;
@@ -61,6 +63,10 @@ public class ProductTypesServiceImpl implements ProductTypesService {
 
         ProductType createdProductType = productTypeRepo.save(type);
 
+        if (createdProductType == null) {
+            log.info("IN create - productType: {} creation failed", type);
+            throw new InternalServerErrorException();
+        }
         log.info("IN create - productType: {} successfully created", createdProductType);
 
         return createdProductType;
@@ -68,16 +74,26 @@ public class ProductTypesServiceImpl implements ProductTypesService {
 
     @Override
     public ProductType update(ProductType type) {
-        ProductType existedProductType = productTypeRepo.findById(type.getId()).orElse(null);
+        ProductType targetProductType = productTypeRepo.findById(type.getId()).orElse(null);
 
-        existedProductType.setName(type.getName());
-        existedProductType.setUpdated(new Date());
+        if (targetProductType == null) {
+            log.info("IN update - ProductType: {} not found", type);
+            throw new ResourceNotFoundException();
+        }
 
-        ProductType updatedProduct = productTypeRepo.save(type);
+        targetProductType.setName(type.getName());
+        targetProductType.setUpdated(new Date());
 
-        log.info("IN update - existedProductType: {} successfully updated", updatedProduct);
+        ProductType updatedProductType = productTypeRepo.save(type);
 
-        return updatedProduct;
+        if (updatedProductType == null) {
+            log.info("IN update - ProductType: {} update failed", type);
+            throw new InternalServerErrorException();
+        }
+
+        log.info("IN update - ProductType: {} successfully updated", updatedProductType);
+
+        return updatedProductType;
     }
 
     @Override

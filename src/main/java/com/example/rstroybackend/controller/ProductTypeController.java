@@ -3,7 +3,6 @@ package com.example.rstroybackend.controller;
 import com.example.rstroybackend.entity.ProductType;
 import com.example.rstroybackend.service.ProductTypesService;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +12,6 @@ import java.util.Set;
 
 @RestController
 @AllArgsConstructor
-@Slf4j
 @Secured("ROLE_ADMIN")
 @RequestMapping(value = "/api/v1/admin/productTypes")
 public class ProductTypeController {
@@ -32,7 +30,7 @@ public class ProductTypeController {
     ) {
         ProductType result = productTypesService.create(productType);
 
-        return ResponseEntity.ok(null);
+        return ResponseEntity.ok(result);
     }
 
     @PatchMapping("")
@@ -41,7 +39,7 @@ public class ProductTypeController {
     ) {
         ProductType result = productTypesService.update(productType);
 
-        return ResponseEntity.ok(null);
+        return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("")

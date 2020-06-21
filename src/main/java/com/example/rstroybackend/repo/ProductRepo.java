@@ -10,7 +10,11 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface ProductRepo extends JpaRepository<Product, Long> {
-    @Query("select distinct p from Product p left join p.types types where upper(p.name) like '%' || upper(:name) || '%' and (:maxPrice is null or p.price <= :maxPrice) and (:minPrice is null or p.price >= :minPrice) and ((:typeNames) is null or types.name in (:typeNames))")
+    @Query("select distinct p from Product p left join p.types types " +
+            "where (:name is null or upper(p.name) like '%' || upper(text(:name)) || '%') " +
+            "and (:maxPrice is null or p.price <= :maxPrice) " +
+            "and (:minPrice is null or p.price >= :minPrice) " +
+            "and ((:typeNames) is null or types.name in (:typeNames))")
     Page<Product> findByFilters(String name, Iterable<String> typeNames, BigDecimal maxPrice, BigDecimal minPrice, Pageable pageable);
 
     @Override

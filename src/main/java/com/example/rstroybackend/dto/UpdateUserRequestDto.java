@@ -31,4 +31,6 @@ public class UpdateUserRequestDto {
 
     @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$", message = "Пароль должен содержать минимум 8 латинских букв, в том числе одну цифру")
     private String newPassword;
+
+    private Boolean isSubscribed;
 }

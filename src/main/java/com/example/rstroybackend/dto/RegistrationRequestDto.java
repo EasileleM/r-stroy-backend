@@ -30,6 +30,8 @@ public class RegistrationRequestDto {
     @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$", message = "Пароль должен содержать минимум 8 латинских букв, в том числе одну цифру")
     private String password;
 
+    private Boolean isSubscribed = false;
+
     public User toUser() {
         return new User(
                 firstName,
@@ -37,6 +39,7 @@ public class RegistrationRequestDto {
                 email,
                 phoneNumber,
                 password,
+                isSubscribed,
                 null,
                 null,
                 null,

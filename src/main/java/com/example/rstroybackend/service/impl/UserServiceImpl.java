@@ -1,16 +1,15 @@
 package com.example.rstroybackend.service.impl;
 
-import com.example.rstroybackend.dto.CreateOrderRequestDto;
-import com.example.rstroybackend.dto.ProductIdDto;
-import com.example.rstroybackend.dto.StashedProductDto;
-import com.example.rstroybackend.dto.UpdateUserRequestDto;
+import com.example.rstroybackend.dto.*;
 import com.example.rstroybackend.entity.*;
 import com.example.rstroybackend.enums.OrderStatus;
 import com.example.rstroybackend.enums.Status;
-import com.example.rstroybackend.repo.ProductRepo;
-import com.example.rstroybackend.repo.RoleRepo;
-import com.example.rstroybackend.repo.StashedProductRepo;
-import com.example.rstroybackend.repo.UserRepo;
+import com.example.rstroybackend.exceptions.BadRequestException;
+import com.example.rstroybackend.exceptions.InternalServerErrorException;
+import com.example.rstroybackend.exceptions.ResourceNotFoundException;
+import com.example.rstroybackend.exceptions.ServiceUnavailableException;
+import com.example.rstroybackend.repo.*;
+import com.example.rstroybackend.service.ProductService;
 import com.example.rstroybackend.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,23 +33,86 @@ public class UserServiceImpl implements UserService {
 
     private final StashedProductRepo stashedProductRepo;
 
+    private final OrderRepo orderRepo;
+
     private final RoleRepo roleRepo;
+
+    private final ProductService productService;
 
     private final BCryptPasswordEncoder passwordEncoder;
 
     @Override
-    public User register(User user) {
+    public Set<User> findAll() {
+        Set<User> users = new HashSet<>(userRepo.findAll());
+
+        log.info("IN getAll - {} users found", users.size());
+        return users;
+    }
+
+    @Override
+    public User findById(Long userId) {
+        User result = userRepo.findById(userId).orElse(null);
+
+        if (result == null) {
+            log.warn("IN findById - no user found by id: {}", userId);
+            throw new ResourceNotFoundException();
+        }
+
+        log.info("IN findById - user {} found by id: {}", result, userId);
+        return result;
+    }
+
+    @Override
+    public User findByEmail(String email) {
+        User user = userRepo.findByEmail(email).orElse(null);
+
+        if (user == null) {
+            log.info("IN findByEmail - no user found by email: {}", email);
+            throw new ResourceNotFoundException();
+        }
+
+        log.info("IN findByEmail - user {} found by email: {}", user, email);
+        return user;
+    }
+
+    @Override
+    public User findByPhoneNumber(String phoneNumber) {
+        User user = userRepo.findByPhoneNumber(phoneNumber).orElse(null);
+
+        if (user == null) {
+            log.info("IN findByPhoneNumber - no user found by phoneNumber: {}", phoneNumber);
+            throw new ResourceNotFoundException();
+        }
+
+        log.info("IN findByPhoneNumber - user {} found by phoneNumber: {}", user, phoneNumber);
+        return user;
+    }
+
+    @Override
+    public User register(RegistrationRequestDto userDto) {
         Role roleUser = roleRepo.findByName("ROLE_USER").orElse(null);
+        if (roleUser == null) {
+            throw new ServiceUnavailableException();
+        }
+
+        User newUser = userDto.toUser();
+
         Set<Role> userRoles = new HashSet<>();
         userRoles.add(roleUser);
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setRoles(userRoles);
-        user.setStatus(Status.ACTIVE);
-        user.setCreated(new Date());
-        user.setUpdated(new Date());
+        newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
+        newUser.setRoles(userRoles);
+        newUser.setStatus(Status.ACTIVE);
+        newUser.setCreated(new Date());
+        newUser.setUpdated(new Date());
+        newUser.setIsSubscribed(userDto.getIsSubscribed());
 
-        User registeredUser = userRepo.save(user);
+        User registeredUser = userRepo.save(newUser);
+
+        if (registeredUser == null) {
+            log.info("IN register - user: {} registration failed", newUser);
+            throw new InternalServerErrorException();
+        }
 
         log.info("IN register - user: {} successfully registered", registeredUser);
 
@@ -58,49 +120,67 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Set<User> getAll() {
-        Set<User> result = new HashSet<>(userRepo.findAll());
+    public User update(UpdateUserRequestDto updateUserRequestDto, Long userId) {
+        User currentUser = findById(userId);
 
-        log.info("IN getAll - {} users found", result.size());
-        return result;
-    }
-
-    @Override
-    public User findByEmail(String email) {
-        User result = userRepo.findByEmail(email).orElse(null);
-        if (result == null) {
-            log.info("IN findByEmail - no user found by email: {}", email);
-        } else {
-            log.info("IN findByEmail - user {} found by email: {}", result, email);
+        if (!passwordEncoder.matches(updateUserRequestDto.getPassword(), currentUser.getPassword())) {
+            throw new BadCredentialsException("Invalid password");
         }
-        return result;
-    }
 
-    @Override
-    public User findByPhoneNumber(String phoneNumber) {
-        User result = userRepo.findByPhoneNumber(phoneNumber).orElse(null);
-        if (result == null) {
-            log.info("IN findByPhoneNumber - no user found by phoneNumber: {}", phoneNumber);
-        } else {
-            log.info("IN findByPhoneNumber - user {} found by phoneNumber: {}", result, phoneNumber);
+        currentUser.setEmail(updateUserRequestDto.getEmail());
+        currentUser.setPhoneNumber(updateUserRequestDto.getPhoneNumber());
+        currentUser.setFirstName(updateUserRequestDto.getFirstName());
+        currentUser.setLastName(updateUserRequestDto.getLastName());
+        currentUser.setUpdated(new Date());
+
+        Boolean subscriptionStatus = updateUserRequestDto.getIsSubscribed();
+        if (subscriptionStatus != null) {
+            currentUser.setIsSubscribed(subscriptionStatus);
         }
+
+        String newPassword = updateUserRequestDto.getNewPassword();
+        if (newPassword != null && newPassword.length() != 0) {
+            currentUser.setPassword(passwordEncoder.encode(newPassword));
+        }
+
+        User result = userRepo.save(currentUser);
+
+        if (result == null) {
+            log.info("IN update - user with id: {} update: {} failed", userId, result);
+            throw new InternalServerErrorException();
+        }
+        log.info("IN update - user with id: {} successfully updated: {}", userId, result);
+
         return result;
     }
 
     @Override
-    public User updateCart(Set<StashedProductDto> cartProducts, Long id) {
-        User currentUser = userRepo.findById(id).orElse(null);
+    public void delete(Long id) {
+        userRepo.deleteById(id);
+
+        log.info("IN delete - user with id: {} successfully deleted", id);
+    }
+
+    @Override
+    public User updateCart(Set<StashedProductDto> cartProducts, Long userId) {
+        User currentUser = findById(userId);
 
         Set<StashedProduct> newCartProducts = new HashSet<>();
 
         for (StashedProductDto stashedProductDto: cartProducts) {
-            Product product = productRepo.findById(stashedProductDto.getProductId()).orElse(null);
-            StashedProduct stashedProduct = StashedProduct.builder().product(product)
-                    .amountInStash(stashedProductDto.getAmountInStash()).build();
-            stashedProduct.setCreated(new Date());
-            stashedProduct.setUpdated(new Date());
-            stashedProduct.setStatus(Status.ACTIVE);
+            Product product = productService.findById(stashedProductDto.getProductId());
 
+            if (product.getAmount() == 0 || product.getAmount() < stashedProductDto.getAmountInStash()) {
+                throw new BadRequestException();
+            }
+
+            StashedProduct stashedProduct = StashedProduct.builder()
+                    .product(product)
+                    .amountInStash(stashedProductDto.getAmountInStash())
+                    .created(new Date())
+                    .updated(new Date())
+                    .status(Status.ACTIVE)
+                    .build();
             newCartProducts.add(stashedProduct);
         }
 
@@ -109,48 +189,78 @@ public class UserServiceImpl implements UserService {
         User result = userRepo.save(currentUser);
 
         if (result == null) {
-            log.info("IN updateUserCart - user with id: {} update with: {} failed", id, newCartProducts);
-        } else {
-            log.info("IN updateUserCart - user with id: {} successfully updated with: {}", id, newCartProducts);
+            log.info("IN updateUserCart - user with id: {} update with: {} failed", userId, newCartProducts);
+            throw new InternalServerErrorException();
         }
+
+        log.info("IN updateUserCart - user with id: {} successfully updated with: {}", userId, newCartProducts);
+        return result;
+    }
+
+    @Override
+    public User updateFavorites(Set<ProductIdDto> favoritesProductsIds, Long userId) {
+        User currentUser = findById(userId);
+
+        Set<Product> newFavoritesProducts = new HashSet<>();
+
+        for (ProductIdDto productIdDto: favoritesProductsIds) {
+            Product product = productService.findById(productIdDto.getId());
+
+            newFavoritesProducts.add(product);
+        }
+
+        currentUser.setFavoritesProducts(newFavoritesProducts);
+
+        User result = userRepo.save(currentUser);
+
+        if (result == null) {
+            log.info("IN updateUserFavorites - user with id: {} update with: {} failed", userId, newFavoritesProducts);
+            throw new InternalServerErrorException();
+        }
+
+        log.info("IN updateUserFavorites - user with id: {} successfully updated with: {}", userId, newFavoritesProducts);
         return result;
     }
 
     @Override
     @Transactional
-    public Order createOrder(CreateOrderRequestDto order, Long id) {
-        User currentUser = userRepo.findById(id).orElse(null);
+    public Order createOrder(CreateOrderRequestDto order, Long userId) {
+        User currentUser = findById(userId);
 
-        Order newOrder = new Order();
-
-        newOrder.setCreated(new Date());
-        newOrder.setUpdated(new Date());
-        newOrder.setStatus(Status.ACTIVE);
-        newOrder.setOrderStatus(OrderStatus.REGISTRATION);
-        newOrder.setDescription(order.getDescription());
-        newOrder.setArrivalPoint(order.getArrivalPoint());
+        Order newOrder = Order.builder()
+                .created(new Date())
+                .updated(new Date())
+                .status(Status.ACTIVE)
+                .orderStatus(OrderStatus.REGISTRATION)
+                .description(order.getDescription())
+                .arrivalPoint(order.getArrivalPoint())
+                .build();
 
         Set<StashedProduct> orderProducts = new HashSet<>();
 
         for (StashedProductDto stashedProductDto: order.getStashedProductDtos()) {
-            Product product = productRepo.findById(stashedProductDto.getProductId()).orElse(null);
-            StashedProduct stashedProduct = StashedProduct.builder().product(product)
-                    .amountInStash(stashedProductDto.getAmountInStash()).build();
-            stashedProduct.setCreated(new Date());
-            stashedProduct.setUpdated(new Date());
-            stashedProduct.setStatus(Status.ACTIVE);
+            Product product = productService.findById(stashedProductDto.getProductId());
+
+            if (product.getAmount() == 0 || product.getAmount() < stashedProductDto.getAmountInStash()) {
+                throw new BadRequestException();
+            }
+
+            StashedProduct stashedProduct = StashedProduct.builder()
+                    .product(product)
+                    .amountInStash(stashedProductDto.getAmountInStash())
+                    .created(new Date())
+                    .updated(new Date())
+                    .status(Status.ACTIVE)
+                    .build();
 
             Integer newProductAmount = product.getAmount() - stashedProductDto.getAmountInStash();
-
-            if (newProductAmount < 0) {
-                // TODO throw error
-            }
 
             if (newProductAmount == 0) {
                 stashedProductRepo.deleteCartItemsByProductId(product.getId());
             }
 
             product.setAmount(newProductAmount);
+            product.setUpdated(new Date());
 
             productRepo.save(product);
 
@@ -163,6 +273,11 @@ public class UserServiceImpl implements UserService {
 
         User result = userRepo.save(currentUser);
 
+        if (result == null) {
+            log.info("IN createOrder - user with id: {} order creation: {} failed", userId, newOrder);
+            throw new InternalServerErrorException();
+        }
+
         Order createdOrder = result
                 .getOrders()
                 .stream()
@@ -170,100 +285,39 @@ public class UserServiceImpl implements UserService {
                 .findFirst()
                 .get();
 
-        if (result == null) {
-            log.info("IN createOrder - user with id: {} order creation: {} failed", id, newOrder);
-        } else {
-            log.info("IN createOrder - user with id: {} successfully created order: {}", id, newOrder);
-        }
+        log.info("IN createOrder - user with id: {} successfully created order: {}", userId, createdOrder);
         return createdOrder;
     }
 
     @Override
-    public User update(UpdateUserRequestDto updateUserRequestDto, Long id) {
-        User currentUser = userRepo.findById(id).orElse(null);
+    @Transactional
+    public void cancelOrder(Long orderId, Long userId) {
+        User currentUser = findById(userId);
 
-        if (!passwordEncoder.matches(updateUserRequestDto.getPassword(), currentUser.getPassword())) {
-            throw new BadCredentialsException("Invalid password");
+        Order canceledOrder = orderRepo.findById(orderId).orElse(null);
+
+        if (canceledOrder == null || canceledOrder.getUser().getId() != userId) {
+            throw new BadRequestException();
         }
 
-        currentUser.setEmail(updateUserRequestDto.getEmail());
-        currentUser.setPhoneNumber(updateUserRequestDto.getPhoneNumber());
-        currentUser.setFirstName(updateUserRequestDto.getFirstName());
-        currentUser.setLastName(updateUserRequestDto.getLastName());
+        for (StashedProduct stashedProduct: canceledOrder.getStashedProducts()) {
+            Product product = productService.findById(stashedProduct.getProduct().getId());
 
-        String newPassword = updateUserRequestDto.getNewPassword();
-        if (newPassword != null && newPassword.length() != 0) {
-            currentUser.setPassword(passwordEncoder.encode(newPassword));
+            product.setAmount(stashedProduct.getAmountInStash() + product.getAmount());
+            product.setUpdated(new Date());
+
+            productRepo.save(product);
         }
-
-        User result = userRepo.save(currentUser);
-
-        if (result == null) {
-            log.info("IN update - user with id: {} update: {} failed", id, result);
-        } else {
-            log.info("IN update - user with id: {} successfully updated: {}", id, result);
-        }
-
-        return result;
-    }
-
-    @Override
-    public void cancelOrder(Long orderId, Long id) {
-        User currentUser = userRepo.findById(id).orElse(null);
-
-        Order canceledOrder = currentUser.getOrders().stream().filter(order -> order.getId() == orderId).findFirst().get();
 
         currentUser.removeOrder(canceledOrder);
 
         User result = userRepo.save(currentUser);
 
         if (result == null) {
-            log.info("IN cancelOrder - user with id: {} order cancellation: {} failed", id, canceledOrder);
-        } else {
-            log.info("IN cancelOrder - user with id: {} successfully canceled order: {}", id, canceledOrder);
-        }
-    }
-
-    @Override
-    public User updateFavorites(Set<ProductIdDto> favoritesProductsIds, Long id) {
-        User currentUser = userRepo.findById(id).orElse(null);
-
-        Set<Product> newFavoritesProducts = new HashSet<>();
-
-        for (ProductIdDto productIdDto: favoritesProductsIds) {
-            Product product = productRepo.findById(productIdDto.getId()).orElse(null);
-            newFavoritesProducts.add(product);
+            log.info("IN cancelOrder - user with id: {} order cancellation: {} failed", userId, canceledOrder);
+            throw new InternalServerErrorException();
         }
 
-        currentUser.setFavoritesProducts(newFavoritesProducts);
-
-        User result = userRepo.save(currentUser);
-
-        if (result == null) {
-            log.info("IN updateUserFavorites - user with id: {} update with: {} failed", id, newFavoritesProducts);
-        } else {
-            log.info("IN updateUserFavorites - user with id: {} successfully updated with: {}", id, newFavoritesProducts);
-        }
-        return result;
-    }
-
-    @Override
-    public User findById(Long id) {
-        User result = userRepo.findById(id).orElse(null);
-
-        if (result == null) {
-            log.warn("IN findById - no user found by id: {}", id);
-        } else {
-            log.info("IN findById - user {} found by id: {}", result, id);
-        }
-
-        return result;
-    }
-
-    @Override
-    public void delete(Long id) {
-        userRepo.deleteById(id);
-
-        log.info("IN delete - user with id: {} successfully deleted", id);
+        log.info("IN cancelOrder - user with id: {} successfully canceled order: {}", userId, canceledOrder);
     }
 }

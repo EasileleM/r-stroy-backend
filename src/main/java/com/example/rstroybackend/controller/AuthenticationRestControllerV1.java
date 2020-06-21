@@ -3,17 +3,16 @@ package com.example.rstroybackend.controller;
 import com.example.rstroybackend.dto.AuthenticationRequestDto;
 import com.example.rstroybackend.dto.RegistrationRequestDto;
 import com.example.rstroybackend.entity.User;
+import com.example.rstroybackend.exceptions.ResourceNotFoundException;
 import com.example.rstroybackend.security.jwt.JwtTokenProvider;
 import com.example.rstroybackend.service.UserService;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +26,6 @@ import java.util.Map;
 
 @RestController
 @AllArgsConstructor
-@Slf4j
 @RequestMapping(value = "/api/v1/commons/auth")
 public class AuthenticationRestControllerV1 {
     private AuthenticationManager authenticationManager;
@@ -41,24 +39,20 @@ public class AuthenticationRestControllerV1 {
         try {
             String email = requestDto.getEmail();
             User user = userService.findByEmail(email);
+
             Long userId = user.getId();
-
-            if (user == null) {
-                throw new UsernameNotFoundException("User with email: " + email + " not found");
-            }
-
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userId, requestDto.getPassword()));
 
             String token = jwtTokenProvider.createToken(userId, user.getRoles());
 
-            Cookie cookie = new Cookie("JWTBEARERTOKEN", "Bearer_" + token);
+            Cookie cookie = new Cookie("JWTBEARERTOKEN", token);
             cookie.setHttpOnly(true);
             cookie.setPath("/");
 
             response.addCookie(cookie);
 
             return ResponseEntity.ok(null);
-        } catch (AuthenticationException e) {
+        } catch (AuthenticationException | ResourceNotFoundException e) {
             throw new BadCredentialsException("Invalid email or password");
         }
     }
@@ -76,28 +70,26 @@ public class AuthenticationRestControllerV1 {
     }
 
     @PostMapping("/registration")
-    public ResponseEntity registration(@Valid @RequestBody RegistrationRequestDto requestDto) {
-        String email = requestDto.getEmail();
-        String phoneNumber = requestDto.getPhoneNumber();
+    public ResponseEntity registration(@Valid @RequestBody RegistrationRequestDto requestRegistrationDto) {
+        String email = requestRegistrationDto.getEmail();
+        String phoneNumber = requestRegistrationDto.getPhoneNumber();
         Map<Object, Object> errorsResponse= new HashMap<>();
 
-        User userWithEmail = userService.findByEmail(email);
-
-        if (userWithEmail != null) {
+        try {
+            userService.findByEmail(email);
             errorsResponse.put("email", "Такая почта уже используется");
-        }
+        } catch (ResourceNotFoundException e) {}
 
-        User userWithPhoneNumber = userService.findByPhoneNumber(phoneNumber);
-
-        if (userWithPhoneNumber != null) {
+        try {
+            userService.findByPhoneNumber(phoneNumber);
             errorsResponse.put("phoneNumber", "Такой номер уже используется");
-        }
+        } catch (ResourceNotFoundException e) {}
 
         if (errorsResponse.size() != 0) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(errorsResponse);
         }
 
-        userService.register(requestDto.toUser());
+        userService.register(requestRegistrationDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(null);
     }

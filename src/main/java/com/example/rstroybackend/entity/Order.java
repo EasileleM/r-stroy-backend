@@ -3,6 +3,7 @@ package com.example.rstroybackend.entity;
 import com.example.rstroybackend.enums.OrderStatus;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -11,7 +12,7 @@ import java.util.Set;
 @Entity
 @Table(name = "orders")
 @Data
-@Builder
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
 public class Order extends BaseEntity {

@@ -1,18 +1,15 @@
 package com.example.rstroybackend.service;
 
-import com.example.rstroybackend.dto.CreateOrderRequestDto;
-import com.example.rstroybackend.dto.ProductIdDto;
-import com.example.rstroybackend.dto.StashedProductDto;
-import com.example.rstroybackend.dto.UpdateUserRequestDto;
+import com.example.rstroybackend.dto.*;
 import com.example.rstroybackend.entity.Order;
 import com.example.rstroybackend.entity.User;
 
 import java.util.Set;
 
 public interface UserService {
-    User register(User user);
+    User register(RegistrationRequestDto userDto);
 
-    Set<User> getAll();
+    Set<User> findAll();
 
     User findByEmail(String email);
 

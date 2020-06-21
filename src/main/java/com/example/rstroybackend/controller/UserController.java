@@ -6,7 +6,7 @@ import com.example.rstroybackend.dto.StashedProductDto;
 import com.example.rstroybackend.dto.UpdateUserRequestDto;
 import com.example.rstroybackend.entity.Order;
 import com.example.rstroybackend.entity.User;
-import com.example.rstroybackend.repo.UserRepo;
+import com.example.rstroybackend.exceptions.ResourceNotFoundException;
 import com.example.rstroybackend.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,8 +29,6 @@ import java.util.Set;
 public class UserController {
     private UserService userService;
 
-    private UserRepo userRepo;
-
     @GetMapping("")
     public ResponseEntity getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
         User currentUser = userService.findById(Long.parseLong(userDetails.getUsername()));
@@ -40,23 +38,21 @@ public class UserController {
     @PatchMapping("")
     public ResponseEntity patchCurrentUser(@AuthenticationPrincipal UserDetails userDetails, @RequestBody UpdateUserRequestDto updateUserRequestDto) {
         Long userId = Long.parseLong(userDetails.getUsername());
-        User currentUser = userRepo.findById(userId).orElse(null);
+        User currentUser = userService.findById(userId);
         Map<Object, Object> errorsResponse= new HashMap<>();
 
         if (!currentUser.getEmail().equals(updateUserRequestDto.getEmail())) {
-            User existedUser = userRepo.findByEmail(updateUserRequestDto.getEmail()).orElse(null);
-
-            if (existedUser != null) {
+            try {
+                userService.findByEmail(updateUserRequestDto.getEmail());
                 errorsResponse.put("email", "Такая почта уже используется");
-            }
+            } catch (ResourceNotFoundException e) {}
         }
 
         if (!currentUser.getPhoneNumber().equals(updateUserRequestDto.getPhoneNumber())) {
-            User existedUser = userRepo.findByEmail(updateUserRequestDto.getEmail()).orElse(null);
-
-            if (existedUser != null) {
+            try {
+                userService.findByPhoneNumber(updateUserRequestDto.getPhoneNumber());
                 errorsResponse.put("phoneNumber", "Такой номер уже используется");
-            }
+            } catch (ResourceNotFoundException e) {}
         }
 
         if (errorsResponse.size() != 0) {

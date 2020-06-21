@@ -3,9 +3,9 @@ package com.example.rstroybackend.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
@@ -19,7 +19,7 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 public class User extends BaseEntity {
     @NotBlank(message = "Имя обязательно к заполнению")
     @Size(min = 2, max = 50, message = "Имя должно содержать больше двух и меньше 50ти символов")
@@ -40,6 +40,9 @@ public class User extends BaseEntity {
     @NotBlank(message = "Пароль обязателен")
     @JsonIgnore
     private String password;
+
+    @JsonIgnore
+    private Boolean isSubscribed;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JsonIgnore
