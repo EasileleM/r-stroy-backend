@@ -46,4 +46,10 @@ public class Product extends BaseEntity {
     @ToString.Exclude
     @JsonIgnore
     private Set<User> users;
+
+    @OneToMany(mappedBy="product", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @JsonIgnore
+    private Set<StashedProduct> stashedProducts;
 }
