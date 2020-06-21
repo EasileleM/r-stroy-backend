@@ -320,4 +320,19 @@ public class UserServiceImpl implements UserService {
 
         log.info("IN cancelOrder - user with id: {} successfully canceled order: {}", userId, canceledOrder);
     }
+
+    @Override
+    public void changeIsSubscribed(Boolean isSubscribed, Long userId) {
+        User currentUser = findById(userId);
+
+        currentUser.setIsSubscribed(isSubscribed);
+
+        User result = userRepo.save(currentUser);
+
+        if (result == null) {
+            log.info("IN update - user with id: {} update: {} failed", userId, result);
+            throw new InternalServerErrorException();
+        }
+        log.info("IN update - user with id: {} successfully updated: {}", userId, result);
+    }
 }

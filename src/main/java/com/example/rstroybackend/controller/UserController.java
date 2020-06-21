@@ -86,4 +86,10 @@ public class UserController {
         userService.cancelOrder(id, Long.parseLong(userDetails.getUsername()));
         return ResponseEntity.ok(null);
     }
+
+    @PatchMapping("/subscription")
+    public ResponseEntity changeIsSubscribed(@AuthenticationPrincipal UserDetails userDetails, @RequestParam(name="isSubscribed", required = true) Boolean isSubscribed) {
+        userService.changeIsSubscribed(isSubscribed, Long.parseLong(userDetails.getUsername()));
+        return ResponseEntity.ok(null);
+    }
 }

@@ -7,25 +7,27 @@ import com.example.rstroybackend.entity.User;
 import java.util.Set;
 
 public interface UserService {
-    User register(RegistrationRequestDto userDto);
-
     Set<User> findAll();
 
     User findByEmail(String email);
 
     User findByPhoneNumber(String phoneNumber);
 
-    User findById(Long id);
+    User findById(Long userId);
 
-    User updateFavorites(Set<ProductIdDto> favoritesProductsIds, Long id);
+    User register(RegistrationRequestDto userDto);
 
-    User updateCart(Set<StashedProductDto> cartProducts, Long id);
+    User update(UpdateUserRequestDto updateUserRequestDto, Long userId);
 
-    Order createOrder(CreateOrderRequestDto order, Long id);
+    void delete(Long userId);
 
-    User update(UpdateUserRequestDto updateUserRequestDto, Long id);
+    User updateFavorites(Set<ProductIdDto> favoritesProductsIds, Long userId);
 
-    void cancelOrder(Long orderId, Long id);
+    User updateCart(Set<StashedProductDto> cartProducts, Long userId);
 
-    void delete(Long id);
+    Order createOrder(CreateOrderRequestDto order, Long userId);
+
+    void cancelOrder(Long orderId, Long userId);
+
+    void changeIsSubscribed(Boolean isSubscribed, Long userId);
 }

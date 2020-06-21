@@ -41,7 +41,6 @@ public class User extends BaseEntity {
     @JsonIgnore
     private String password;
 
-    @JsonIgnore
     private Boolean isSubscribed;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
