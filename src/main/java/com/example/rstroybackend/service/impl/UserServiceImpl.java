@@ -296,7 +296,9 @@ public class UserServiceImpl implements UserService {
 
         Order canceledOrder = orderRepo.findById(orderId).orElse(null);
 
-        if (canceledOrder == null || canceledOrder.getUser().getId() != userId) {
+        if (canceledOrder == null
+                || canceledOrder.getUser().getId() != userId
+                || canceledOrder.getOrderStatus() != OrderStatus.REGISTRATION) {
             throw new BadRequestException();
         }
 
