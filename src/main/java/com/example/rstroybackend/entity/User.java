@@ -3,6 +3,7 @@ package com.example.rstroybackend.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -18,6 +19,7 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class User extends BaseEntity {
     @NotBlank(message = "Имя обязательно к заполнению")
     @Size(min = 2, max = 50, message = "Имя должно содержать больше двух и меньше 50ти символов")

@@ -9,6 +9,7 @@ import com.example.rstroybackend.enums.OrderStatus;
 import com.example.rstroybackend.enums.Status;
 import com.example.rstroybackend.repo.ProductRepo;
 import com.example.rstroybackend.repo.RoleRepo;
+import com.example.rstroybackend.repo.StashedProductRepo;
 import com.example.rstroybackend.repo.UserRepo;
 import com.example.rstroybackend.service.UserService;
 import lombok.AllArgsConstructor;
@@ -16,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -29,6 +31,8 @@ public class UserServiceImpl implements UserService {
     private final UserRepo userRepo;
 
     private final ProductRepo productRepo;
+
+    private final StashedProductRepo stashedProductRepo;
 
     private final RoleRepo roleRepo;
 
@@ -90,10 +94,9 @@ public class UserServiceImpl implements UserService {
         Set<StashedProduct> newCartProducts = new HashSet<>();
 
         for (StashedProductDto stashedProductDto: cartProducts) {
-            StashedProduct stashedProduct = new StashedProduct();
             Product product = productRepo.findById(stashedProductDto.getProductId()).orElse(null);
-            stashedProduct.setProduct(product);
-            stashedProduct.setAmountInStash(stashedProductDto.getAmountInStash());
+            StashedProduct stashedProduct = StashedProduct.builder().product(product)
+                    .amountInStash(stashedProductDto.getAmountInStash()).build();
             stashedProduct.setCreated(new Date());
             stashedProduct.setUpdated(new Date());
             stashedProduct.setStatus(Status.ACTIVE);
@@ -114,6 +117,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public Order createOrder(CreateOrderRequestDto order, Long id) {
         User currentUser = userRepo.findById(id).orElse(null);
 
@@ -129,15 +133,27 @@ public class UserServiceImpl implements UserService {
         Set<StashedProduct> orderProducts = new HashSet<>();
 
         for (StashedProductDto stashedProductDto: order.getStashedProductDtos()) {
-            StashedProduct stashedProduct = new StashedProduct();
             Product product = productRepo.findById(stashedProductDto.getProductId()).orElse(null);
-            stashedProduct.setProduct(product);
-            stashedProduct.setAmountInStash(stashedProductDto.getAmountInStash());
+            StashedProduct stashedProduct = StashedProduct.builder().product(product)
+                    .amountInStash(stashedProductDto.getAmountInStash()).build();
             stashedProduct.setCreated(new Date());
             stashedProduct.setUpdated(new Date());
             stashedProduct.setStatus(Status.ACTIVE);
 
-            // TODO decrement products amount and disable if 0
+            Integer newProductAmount = product.getAmount() - stashedProductDto.getAmountInStash();
+
+            if (newProductAmount < 0) {
+                // TODO throw error
+            }
+
+            if (newProductAmount == 0) {
+                stashedProductRepo.deleteCartItemsByProductId(product.getId());
+            }
+
+            product.setAmount(newProductAmount);
+
+            productRepo.save(product);
+
             orderProducts.add(stashedProduct);
         }
 

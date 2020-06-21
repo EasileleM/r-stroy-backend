@@ -11,10 +11,12 @@ import java.util.Set;
 @Entity
 @Table(name = "orders")
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class Order extends BaseEntity {
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "order_id")
     private Set<StashedProduct> stashedProducts;
 
     @ManyToOne

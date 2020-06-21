@@ -4,16 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
-import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.math.BigDecimal;
 import java.util.Set;
 
 @Entity
 @Table(name = "products")
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class Product extends BaseEntity {
@@ -25,7 +23,7 @@ public class Product extends BaseEntity {
     @Size(min = 10, max = 1050, message = "Описание должно содержать больше десяти и меньше 1050ти символов")
     private String description;
 
-    @Positive(message = "Количество обязательно")
+    @PositiveOrZero(message = "Количество обязательно")
     private Integer amount;
 
     @DecimalMin(value = "0.0", inclusive = false, message = "Цена обязательна")
