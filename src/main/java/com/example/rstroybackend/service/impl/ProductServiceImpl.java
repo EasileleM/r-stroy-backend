@@ -1,5 +1,6 @@
 package com.example.rstroybackend.service.impl;
 
+import com.example.rstroybackend.dto.JsonPage;
 import com.example.rstroybackend.entity.Product;
 import com.example.rstroybackend.entity.ProductType;
 import com.example.rstroybackend.enums.Status;
@@ -12,7 +13,6 @@ import com.example.rstroybackend.service.ProductService;
 import com.example.rstroybackend.service.ProductTypesService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +28,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductTypesService productTypesService;
 
     @Override
-    public Page<Product> findByFilters(
+    public JsonPage<Product> findByFilters(
             String search,
             Iterable<String> types,
             Integer maxPrice,
@@ -37,7 +37,7 @@ public class ProductServiceImpl implements ProductService {
         BigDecimal maxPriceBigDecimal = maxPrice == null ? null : new BigDecimal(maxPrice);
         BigDecimal minPriceBigDecimal = minPrice == null ? null : new BigDecimal(minPrice);
 
-        Page<Product> result = productRepo.findByFilters(search, types, maxPriceBigDecimal, minPriceBigDecimal, pageable);
+        JsonPage<Product> result = new JsonPage(productRepo.findByFilters(search, types, maxPriceBigDecimal, minPriceBigDecimal, pageable), pageable);
 
         if (result.getNumberOfElements() == 0) {
             log.warn("IN findByFilters - no products found by search: {} types: {} maxPrice: {} minPrice: {}", search, types, maxPrice, minPrice);

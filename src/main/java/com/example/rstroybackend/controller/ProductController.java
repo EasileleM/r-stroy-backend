@@ -36,14 +36,10 @@ public class ProductController {
             @RequestParam(value="id", required=false) Set<Long> ids,
             @PageableDefault(size = 30, sort = { "id" }, direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Object result;
         if (ids == null) {
-            result = productService.findByFilters(search, types, maxPrice, minPrice, pageable);
-        } else {
-            result = productService.findByIds(ids);
+            return ResponseEntity.ok(productService.findByFilters(search, types, maxPrice, minPrice, pageable));
         }
-
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(productService.findByIds(ids));
     }
 
     @GetMapping("/commons/products/{id}")

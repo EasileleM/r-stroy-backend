@@ -231,6 +231,7 @@ public class UserServiceImpl implements UserService {
                 .created(new Date())
                 .updated(new Date())
                 .status(Status.ACTIVE)
+                .startedDate(new Date())
                 .orderStatus(OrderStatus.REGISTRATION)
                 .description(order.getDescription())
                 .arrivalPoint(order.getArrivalPoint())
