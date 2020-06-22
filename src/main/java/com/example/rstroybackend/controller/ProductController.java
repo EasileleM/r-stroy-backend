@@ -34,7 +34,7 @@ public class ProductController {
             @RequestParam(value="maxPrice", required = false) Integer maxPrice,
             @RequestParam(value="minPrice", required = false) Integer minPrice,
             @RequestParam(value="id", required=false) Set<Long> ids,
-            @PageableDefault(size = 30, sort = { "id" }, direction = Sort.Direction.DESC) Pageable pageable
+            @PageableDefault(size = 30, sort = { "created" }, direction = Sort.Direction.DESC) Pageable pageable
     ) {
         if (ids == null) {
             return ResponseEntity.ok(productService.findByFilters(search, types, maxPrice, minPrice, pageable));

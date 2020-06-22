@@ -3,11 +3,12 @@ package com.example.rstroybackend.service;
 import com.example.rstroybackend.dto.*;
 import com.example.rstroybackend.entity.Order;
 import com.example.rstroybackend.entity.User;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.Set;
 
 public interface UserService {
-    Set<User> findAll();
+    Page<User> findAll(Pageable pageable);
 
     User findByEmail(String email);
 
@@ -16,6 +17,8 @@ public interface UserService {
     User findById(Long userId);
 
     User register(RegistrationRequestDto userDto);
+
+    User update(UpdateCurrentUserRequestDto updateCurrentUserRequestDto, Long userId);
 
     User update(UpdateUserRequestDto updateUserRequestDto, Long userId);
 

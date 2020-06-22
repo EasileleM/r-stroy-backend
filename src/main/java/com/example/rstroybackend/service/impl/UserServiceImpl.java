@@ -13,10 +13,12 @@ import com.example.rstroybackend.service.ProductService;
 import com.example.rstroybackend.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -42,10 +44,10 @@ public class UserServiceImpl implements UserService {
     private final BCryptPasswordEncoder passwordEncoder;
 
     @Override
-    public Set<User> findAll() {
-        Set<User> users = new HashSet<>(userRepo.findAll());
+    public Page<User> findAll(Pageable pageable) {
+        Page<User> users = userRepo.findAll(pageable);
 
-        log.info("IN getAll - {} users found", users.size());
+        log.info("IN getAll - {} users found", users.getNumberOfElements());
         return users;
     }
 
@@ -120,25 +122,56 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User update(UpdateUserRequestDto updateUserRequestDto, Long userId) {
+    public User update(UpdateCurrentUserRequestDto updateCurrentUserRequestDto, Long userId) {
         User currentUser = findById(userId);
 
-        if (!passwordEncoder.matches(updateUserRequestDto.getPassword(), currentUser.getPassword())) {
+        if (!passwordEncoder.matches(updateCurrentUserRequestDto.getPassword(), currentUser.getPassword())) {
             throw new BadCredentialsException("Invalid password");
         }
 
-        currentUser.setEmail(updateUserRequestDto.getEmail());
-        currentUser.setPhoneNumber(updateUserRequestDto.getPhoneNumber());
-        currentUser.setFirstName(updateUserRequestDto.getFirstName());
-        currentUser.setLastName(updateUserRequestDto.getLastName());
+        currentUser.setEmail(updateCurrentUserRequestDto.getEmail());
+        currentUser.setPhoneNumber(updateCurrentUserRequestDto.getPhoneNumber());
+        currentUser.setFirstName(updateCurrentUserRequestDto.getFirstName());
+        currentUser.setLastName(updateCurrentUserRequestDto.getLastName());
         currentUser.setUpdated(new Date());
 
-        Boolean subscriptionStatus = updateUserRequestDto.getIsSubscribed();
+        Boolean subscriptionStatus = updateCurrentUserRequestDto.getIsSubscribed();
         if (subscriptionStatus != null) {
             currentUser.setIsSubscribed(subscriptionStatus);
         }
 
-        String newPassword = updateUserRequestDto.getNewPassword();
+        String newPassword = updateCurrentUserRequestDto.getNewPassword();
+        if (newPassword != null && newPassword.length() != 0) {
+            currentUser.setPassword(passwordEncoder.encode(newPassword));
+        }
+
+        User result = userRepo.save(currentUser);
+
+        if (result == null) {
+            log.info("IN update - user with id: {} update: {} failed", userId, result);
+            throw new InternalServerErrorException();
+        }
+        log.info("IN update - user with id: {} successfully updated: {}", userId, result);
+
+        return result;
+    }
+
+    @Override
+    public User update(UpdateUserRequestDto updateCurrentUserRequestDto, Long userId) {
+        User currentUser = findById(userId);
+
+        currentUser.setEmail(updateCurrentUserRequestDto.getEmail());
+        currentUser.setPhoneNumber(updateCurrentUserRequestDto.getPhoneNumber());
+        currentUser.setFirstName(updateCurrentUserRequestDto.getFirstName());
+        currentUser.setLastName(updateCurrentUserRequestDto.getLastName());
+        currentUser.setUpdated(new Date());
+
+        Boolean subscriptionStatus = updateCurrentUserRequestDto.getIsSubscribed();
+        if (subscriptionStatus != null) {
+            currentUser.setIsSubscribed(subscriptionStatus);
+        }
+
+        String newPassword = updateCurrentUserRequestDto.getNewPassword();
         if (newPassword != null && newPassword.length() != 0) {
             currentUser.setPassword(passwordEncoder.encode(newPassword));
         }
@@ -312,7 +345,7 @@ public class UserServiceImpl implements UserService {
             productRepo.save(product);
         }
 
-        currentUser.removeOrder(canceledOrder);
+        currentUser.updateOrderStatus(OrderStatus.CANCELED, orderId);
 
         User result = userRepo.save(currentUser);
 

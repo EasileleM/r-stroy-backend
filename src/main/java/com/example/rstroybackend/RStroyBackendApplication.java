@@ -19,17 +19,11 @@ public class RStroyBackendApplication {
 			@Override
 			public void addCorsMappings(CorsRegistry registry) {
 				registry
-						.addMapping("/api/v1/commons/**")
-						.allowCredentials(true)
-						.allowedMethods("*")
-						.maxAge(3600)
-						.allowedOrigins("http://localhost:3000"); // User app
-				registry
 						.addMapping("/api/v1/**")
 						.allowCredentials(true)
 						.allowedMethods("*")
 						.maxAge(3600)
-						.allowedOrigins("http://localhost:3222"); // Admin app
+						.allowedOrigins("http://localhost:3000"); // User and Admin app
 			}
 		};
 	}

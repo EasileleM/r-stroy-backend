@@ -1,6 +1,7 @@
 package com.example.rstroybackend.entity;
 
 import com.example.rstroybackend.entity.views.SecurityViews;
+import com.example.rstroybackend.enums.OrderStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -84,9 +85,13 @@ public class User extends BaseEntity {
         order.setUser(this);
     }
 
-    public void removeOrder(Order order) {
-        orders.remove(order);
-        order.setUser(null);
+    public void updateOrderStatus(OrderStatus orderStatus, Long id) {
+        orders
+                .stream()
+                .filter(order -> order.getId() == id)
+                .findFirst()
+                .get()
+                .setOrderStatus(orderStatus);
     }
 
     public void setCartProducts(Set<StashedProduct> cartProducts) {
