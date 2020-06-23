@@ -74,7 +74,7 @@ public class ProductControllerV1 {
     public ResponseEntity deleteProduct(
             @Valid @RequestBody Product product
     ) {
-        productService.delete(product);
+        // productService.delete(product); TODO rethink the logic
 
         return ResponseEntity.ok(null);
     }

@@ -18,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 @Service
@@ -346,17 +347,9 @@ public class UserServiceImpl implements UserService {
     public Order createOrder(CreateOrderRequestDto order, Long userId) {
         User currentUser = findById(userId);
 
-        Order newOrder = Order.builder()
-                .created(new Date())
-                .updated(new Date())
-                .status(Status.ACTIVE)
-                .startedDate(new Date())
-                .orderStatus(OrderStatus.REGISTRATION)
-                .description(order.getDescription())
-                .arrivalPoint(order.getArrivalPoint())
-                .build();
-
         Set<StashedProduct> orderProducts = new HashSet<>();
+
+        BigDecimal price = new BigDecimal(0);
 
         for (StashedProductDto stashedProductDto: order.getStashedProductDtos()) {
             Product product = productService.findById(stashedProductDto.getProductId());
@@ -364,6 +357,11 @@ public class UserServiceImpl implements UserService {
             if (product.getAmount() == 0 || product.getAmount() < stashedProductDto.getAmountInStash()) {
                 throw new BadRequestException();
             }
+
+            BigDecimal multiplier = new BigDecimal(stashedProductDto.getAmountInStash());
+            BigDecimal multipliedPrice = product.getPrice().multiply(multiplier);
+
+            price = price.add(multipliedPrice);
 
             StashedProduct stashedProduct = StashedProduct.builder()
                     .product(product)
@@ -377,6 +375,14 @@ public class UserServiceImpl implements UserService {
 
             if (newProductAmount == 0) {
                 stashedProductRepo.deleteCartItemsByProductId(product.getId());
+            } else {
+                List<StashedProduct> allStashedProducts = stashedProductRepo.findAllByProduct(product.getId());
+                allStashedProducts.forEach(tempStashedProduct -> {
+                    if (tempStashedProduct.getAmountInStash() > newProductAmount) {
+                        tempStashedProduct.setAmountInStash(newProductAmount);
+                        stashedProductRepo.save(tempStashedProduct);
+                    }
+                });
             }
 
             product.setAmount(newProductAmount);
@@ -387,7 +393,17 @@ public class UserServiceImpl implements UserService {
             orderProducts.add(stashedProduct);
         }
 
-        newOrder.setStashedProducts(orderProducts);
+        Order newOrder = Order.builder()
+                .created(new Date())
+                .updated(new Date())
+                .status(Status.ACTIVE)
+                .startedDate(new Date())
+                .orderStatus(OrderStatus.REGISTRATION)
+                .description(order.getDescription())
+                .arrivalPoint(order.getArrivalPoint())
+                .price(price)
+                .stashedProducts(orderProducts)
+                .build();
 
         currentUser.addOrder(newOrder);
 

@@ -42,11 +42,9 @@ public class ProductTypeControllerV1 {
         return ResponseEntity.ok(result);
     }
 
-    @DeleteMapping("")
-    public ResponseEntity deleteProductType(
-            @Valid @RequestBody ProductType productType
-    ) {
-        productTypesService.delete(productType.getId());
+    @DeleteMapping("{id}")
+    public ResponseEntity deleteProductType(@PathVariable Long id) {
+        productTypesService.delete(id);
 
         return ResponseEntity.ok(null);
     }

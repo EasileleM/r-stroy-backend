@@ -7,10 +7,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
-import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.PositiveOrZero;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.math.BigDecimal;
 import java.util.Set;
 
@@ -31,11 +28,13 @@ public class Product extends BaseEntity {
     @JsonView(SecurityViews.Anonymous.class)
     private String description;
 
-    @PositiveOrZero(message = "Количество обязательно")
+    @PositiveOrZero(message = "Количество должно быть больше либо равно нулю")
+    @NotNull(message = "Количество обязательно")
     @JsonView(SecurityViews.Anonymous.class)
     private Integer amount;
 
-    @DecimalMin(value = "0.0", inclusive = false, message = "Цена обязательна")
+    @DecimalMin(value = "0.0", inclusive = false, message = "Цена должна быть положительной")
+    @NotNull(message = "Цена обязательна")
     @JsonView(SecurityViews.Anonymous.class)
     private BigDecimal price;
 
@@ -58,7 +57,7 @@ public class Product extends BaseEntity {
     @JsonIgnore
     private Set<User> users;
 
-    @OneToMany(mappedBy="product", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy="product", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @JsonIgnore

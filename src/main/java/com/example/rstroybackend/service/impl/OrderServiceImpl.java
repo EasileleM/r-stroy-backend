@@ -69,6 +69,8 @@ public class OrderServiceImpl implements OrderService {
 
                 productRepo.save(product);
             }
+        } else if (status == OrderStatus.COMPLETED) {
+            targetOrder.setCompletionDate(new Date());
         }
 
         targetOrder.setOrderStatus(status);

@@ -8,6 +8,8 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
+import javax.validation.constraints.DecimalMin;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Set;
 
@@ -30,6 +32,10 @@ public class Order extends BaseEntity {
     @JsonBackReference
     @JsonView(SecurityViews.User.class)
     private User user;
+
+    @DecimalMin(value = "0.0", inclusive = false, message = "Цена обязательна")
+    @JsonView(SecurityViews.Anonymous.class)
+    private BigDecimal price;
 
     @Enumerated(EnumType.STRING)
     @JsonView(SecurityViews.User.class)

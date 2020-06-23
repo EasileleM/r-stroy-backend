@@ -3,18 +3,21 @@ package com.example.rstroybackend.service.impl;
 import com.example.rstroybackend.dto.JsonPage;
 import com.example.rstroybackend.entity.Product;
 import com.example.rstroybackend.entity.ProductType;
+import com.example.rstroybackend.entity.StashedProduct;
 import com.example.rstroybackend.enums.Status;
 import com.example.rstroybackend.exceptions.BadRequestException;
 import com.example.rstroybackend.exceptions.InternalServerErrorException;
 import com.example.rstroybackend.exceptions.ResourceNotFoundException;
 import com.example.rstroybackend.exceptions.ServiceUnavailableException;
 import com.example.rstroybackend.repo.ProductRepo;
+import com.example.rstroybackend.repo.StashedProductRepo;
 import com.example.rstroybackend.service.ProductService;
 import com.example.rstroybackend.service.ProductTypesService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -26,6 +29,8 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepo productRepo;
 
     private final ProductTypesService productTypesService;
+
+    private final StashedProductRepo stashedProductRepo;
 
     @Override
     public JsonPage<Product> findByFilters(
@@ -92,6 +97,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public Product update(Product product) {
         Long productId = product.getId();
 
@@ -107,7 +113,19 @@ public class ProductServiceImpl implements ProductService {
             throw new ResourceNotFoundException();
         }
 
-        existedProduct.setAmount(product.getAmount());
+        Integer currentProductAmount = product.getAmount();
+
+        if (product.getAmount() != existedProduct.getAmount()) {
+            List<StashedProduct> allStashedProducts = stashedProductRepo.findAllByProduct(product.getId());
+            allStashedProducts.forEach(tempStashedProduct -> {
+                if (tempStashedProduct.getAmountInStash() > currentProductAmount) {
+                    tempStashedProduct.setAmountInStash(currentProductAmount);
+                    stashedProductRepo.save(tempStashedProduct);
+                }
+            });
+        }
+
+        existedProduct.setAmount(currentProductAmount);
         existedProduct.setDescription(product.getDescription());
         existedProduct.setImageURL(product.getImageURL());
         existedProduct.setName(product.getName());
