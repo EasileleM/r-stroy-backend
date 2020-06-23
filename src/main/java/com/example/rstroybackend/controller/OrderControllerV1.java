@@ -18,7 +18,7 @@ import javax.validation.Valid;
 @AllArgsConstructor
 @Secured("ROLE_ADMIN")
 @RequestMapping(value = "/api/v1/admin/orders")
-public class OrderController {
+public class OrderControllerV1 {
     private final OrderService orderService;
 
     @GetMapping("")

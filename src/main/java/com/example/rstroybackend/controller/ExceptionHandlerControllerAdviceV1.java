@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @ControllerAdvice
-public class ExceptionHandlerControllerAdvice extends ResponseEntityExceptionHandler  {
+public class ExceptionHandlerControllerAdviceV1 extends ResponseEntityExceptionHandler  {
     @Override
     public ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex,

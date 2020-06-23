@@ -9,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
@@ -51,7 +53,11 @@ public class User extends BaseEntity {
     @JsonView(SecurityViews.User.class)
     private Boolean isSubscribed;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JsonView(SecurityViews.Admin.class)
+    private String activationCode;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonManagedReference
     @JsonView(SecurityViews.Admin.class)
     @JoinTable(
@@ -66,7 +72,8 @@ public class User extends BaseEntity {
     @JsonView(SecurityViews.User.class)
     private Set<StashedProduct> cartProducts;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinTable(
             name = "user_favorites",
             joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")},

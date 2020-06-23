@@ -4,25 +4,21 @@ import com.example.rstroybackend.dto.*;
 import com.example.rstroybackend.entity.*;
 import com.example.rstroybackend.enums.OrderStatus;
 import com.example.rstroybackend.enums.Status;
-import com.example.rstroybackend.exceptions.BadRequestException;
-import com.example.rstroybackend.exceptions.InternalServerErrorException;
-import com.example.rstroybackend.exceptions.ResourceNotFoundException;
-import com.example.rstroybackend.exceptions.ServiceUnavailableException;
+import com.example.rstroybackend.exceptions.*;
 import com.example.rstroybackend.repo.*;
+import com.example.rstroybackend.service.MailService;
 import com.example.rstroybackend.service.ProductService;
 import com.example.rstroybackend.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.data.domain.Pageable;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -42,6 +38,8 @@ public class UserServiceImpl implements UserService {
     private final ProductService productService;
 
     private final BCryptPasswordEncoder passwordEncoder;
+
+    private final MailService mailService;
 
     @Override
     public Page<User> findAll(Pageable pageable) {
@@ -92,6 +90,22 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User register(RegistrationRequestDto userDto) {
+        Map<Object, Object> errorsResponse= new HashMap<>();
+
+        try {
+            findByEmail(userDto.getEmail());
+            errorsResponse.put("email", "Такая почта уже используется");
+        } catch (ResourceNotFoundException e) {}
+
+        try {
+            findByPhoneNumber(userDto.getPhoneNumber());
+            errorsResponse.put("phoneNumber", "Такой номер уже используется");
+        } catch (ResourceNotFoundException e) {}
+
+        if (errorsResponse.size() != 0) {
+            throw new ConflictException(errorsResponse);
+        }
+
         Role roleUser = roleRepo.findByName("ROLE_USER").orElse(null);
         if (roleUser == null) {
             throw new ServiceUnavailableException();
@@ -104,7 +118,8 @@ public class UserServiceImpl implements UserService {
 
         newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
         newUser.setRoles(userRoles);
-        newUser.setStatus(Status.ACTIVE);
+        newUser.setStatus(Status.NOT_ACTIVE);
+        newUser.setActivationCode(UUID.randomUUID().toString());
         newUser.setCreated(new Date());
         newUser.setUpdated(new Date());
         newUser.setIsSubscribed(userDto.getIsSubscribed());
@@ -116,14 +131,65 @@ public class UserServiceImpl implements UserService {
             throw new InternalServerErrorException();
         }
 
+        String message = String.format(
+                "Добро пожаловать, %s! \n" +
+                "Пройдите по ссылке для подтверждения вашей почты: http://localhost:3000/activate/%s",
+                newUser.getFirstName(),
+                newUser.getActivationCode()
+        );
+
+        mailService.sendToOne(
+                newUser.getEmail(),
+                new MailMessageDto("Код Активации", message)
+        );
+
         log.info("IN register - user: {} successfully registered", registeredUser);
 
         return registeredUser;
     }
 
     @Override
+    public void activate(String activationCode) {
+        User user = userRepo.findByActivationCode(activationCode).orElse(null);
+
+        if (user == null) {
+            log.info("IN activate - activation code: {} not found", activationCode);
+            throw new ResourceNotFoundException();
+        }
+
+        user.setActivationCode(null);
+        user.setStatus(Status.ACTIVE);
+        User result = userRepo.save(user);
+
+        if (result == null) {
+            log.info("IN activate - activation code: {} activation failed", activationCode);
+            throw new InternalServerErrorException();
+        }
+        log.info("IN activate - activation code: {} activation success", activationCode);
+    }
+
+    @Override
     public User update(UpdateCurrentUserRequestDto updateCurrentUserRequestDto, Long userId) {
         User currentUser = findById(userId);
+        Map<Object, Object> errorsResponse= new HashMap<>();
+
+        if (!currentUser.getEmail().equals(updateCurrentUserRequestDto.getEmail())) {
+            try {
+                findByEmail(updateCurrentUserRequestDto.getEmail());
+                errorsResponse.put("email", "Такая почта уже используется");
+            } catch (ResourceNotFoundException e) {}
+        }
+
+        if (!currentUser.getPhoneNumber().equals(updateCurrentUserRequestDto.getPhoneNumber())) {
+            try {
+                findByPhoneNumber(updateCurrentUserRequestDto.getPhoneNumber());
+                errorsResponse.put("phoneNumber", "Такой номер уже используется");
+            } catch (ResourceNotFoundException e) {}
+        }
+
+        if (errorsResponse.size() != 0) {
+            throw new ConflictException(errorsResponse);
+        }
 
         if (!passwordEncoder.matches(updateCurrentUserRequestDto.getPassword(), currentUser.getPassword())) {
             throw new BadCredentialsException("Invalid password");
@@ -159,6 +225,26 @@ public class UserServiceImpl implements UserService {
     @Override
     public User update(UpdateUserRequestDto updateCurrentUserRequestDto, Long userId) {
         User currentUser = findById(userId);
+
+        Map<Object, Object> errorsResponse= new HashMap<>();
+
+        if (!currentUser.getEmail().equals(updateCurrentUserRequestDto.getEmail())) {
+            try {
+                findByEmail(updateCurrentUserRequestDto.getEmail());
+                errorsResponse.put("email", "Такая почта уже используется");
+            } catch (ResourceNotFoundException e) {}
+        }
+
+        if (!currentUser.getPhoneNumber().equals(updateCurrentUserRequestDto.getPhoneNumber())) {
+            try {
+                findByPhoneNumber(updateCurrentUserRequestDto.getPhoneNumber());
+                errorsResponse.put("phoneNumber", "Такой номер уже используется");
+            } catch (ResourceNotFoundException e) {}
+        }
+
+        if (errorsResponse.size() != 0) {
+            throw new ConflictException(errorsResponse);
+        }
 
         currentUser.setEmail(updateCurrentUserRequestDto.getEmail());
         currentUser.setPhoneNumber(updateCurrentUserRequestDto.getPhoneNumber());

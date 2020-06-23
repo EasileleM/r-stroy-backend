@@ -9,7 +9,6 @@ import java.util.Set;
 @Data
 public class CreateOrderRequestDto {
     @NotEmpty
-    @NotBlank
     private Set<StashedProductDto> stashedProductDtos;
 
     private String description;

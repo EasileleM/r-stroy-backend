@@ -3,6 +3,9 @@ package com.example.rstroybackend.controller;
 import com.example.rstroybackend.dto.AuthenticationRequestDto;
 import com.example.rstroybackend.dto.RegistrationRequestDto;
 import com.example.rstroybackend.entity.User;
+import com.example.rstroybackend.enums.Status;
+import com.example.rstroybackend.exceptions.ConflictException;
+import com.example.rstroybackend.exceptions.ForbiddenException;
 import com.example.rstroybackend.exceptions.ResourceNotFoundException;
 import com.example.rstroybackend.security.jwt.JwtTokenProvider;
 import com.example.rstroybackend.service.UserService;
@@ -21,13 +24,11 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @AllArgsConstructor
 @RequestMapping(value = "/api/v1/commons/auth")
-public class AuthenticationRestControllerV1 {
+public class AuthenticationControllerV1 {
     private AuthenticationManager authenticationManager;
 
     private JwtTokenProvider jwtTokenProvider;
@@ -39,6 +40,10 @@ public class AuthenticationRestControllerV1 {
         try {
             String email = requestDto.getEmail();
             User user = userService.findByEmail(email);
+
+            if (user.getStatus() != Status.ACTIVE) {
+                throw new ForbiddenException();
+            }
 
             Long userId = user.getId();
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userId, requestDto.getPassword()));
@@ -52,7 +57,7 @@ public class AuthenticationRestControllerV1 {
             response.addCookie(cookie);
 
             return ResponseEntity.ok(null);
-        } catch (AuthenticationException | ResourceNotFoundException e) {
+        } catch (AuthenticationException | ResourceNotFoundException | ForbiddenException e) {
             throw new BadCredentialsException("Invalid email or password");
         }
     }
@@ -71,25 +76,11 @@ public class AuthenticationRestControllerV1 {
 
     @PostMapping("/registration")
     public ResponseEntity registration(@Valid @RequestBody RegistrationRequestDto requestRegistrationDto) {
-        String email = requestRegistrationDto.getEmail();
-        String phoneNumber = requestRegistrationDto.getPhoneNumber();
-        Map<Object, Object> errorsResponse= new HashMap<>();
-
         try {
-            userService.findByEmail(email);
-            errorsResponse.put("email", "Такая почта уже используется");
-        } catch (ResourceNotFoundException e) {}
-
-        try {
-            userService.findByPhoneNumber(phoneNumber);
-            errorsResponse.put("phoneNumber", "Такой номер уже используется");
-        } catch (ResourceNotFoundException e) {}
-
-        if (errorsResponse.size() != 0) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorsResponse);
+            userService.register(requestRegistrationDto);
+        } catch (ConflictException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getBody());
         }
-
-        userService.register(requestRegistrationDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(null);
     }

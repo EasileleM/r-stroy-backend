@@ -17,7 +17,7 @@ import java.util.Set;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api/v1")
-public class ProductController {
+public class ProductControllerV1 {
     private final ProductService productService;
 
     @GetMapping("/commons/products/filters")

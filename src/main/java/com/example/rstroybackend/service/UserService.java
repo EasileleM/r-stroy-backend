@@ -18,6 +18,8 @@ public interface UserService {
 
     User register(RegistrationRequestDto userDto);
 
+    void activate(String activationCode);
+
     User update(UpdateCurrentUserRequestDto updateCurrentUserRequestDto, Long userId);
 
     User update(UpdateUserRequestDto updateUserRequestDto, Long userId);

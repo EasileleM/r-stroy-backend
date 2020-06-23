@@ -3,7 +3,8 @@ package com.example.rstroybackend.controller;
 import com.example.rstroybackend.dto.*;
 import com.example.rstroybackend.entity.Order;
 import com.example.rstroybackend.entity.User;
-import com.example.rstroybackend.exceptions.ResourceNotFoundException;
+import com.example.rstroybackend.exceptions.ConflictException;
+import com.example.rstroybackend.service.MailService;
 import com.example.rstroybackend.service.OrderService;
 import com.example.rstroybackend.service.UserService;
 import lombok.AllArgsConstructor;
@@ -18,78 +19,74 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import javax.validation.Valid;
 import java.util.Set;
 
 @RestController
 @AllArgsConstructor
 @Slf4j
-@Secured({ "ROLE_USER", "ROLE_ADMIN" })
 @RequestMapping(value = "/api/v1")
-public class UserController {
+public class UserControllerV1 {
     private UserService userService;
 
     private OrderService orderService;
 
+    private MailService mailService;
+
+    @Secured({ "ROLE_USER", "ROLE_ADMIN" })
     @GetMapping("/commons/user")
     public ResponseEntity getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
         User currentUser = userService.findById(Long.parseLong(userDetails.getUsername()));
         return ResponseEntity.ok(currentUser);
     }
 
-    @PatchMapping("/commons/user")
-    public ResponseEntity patchCurrentUser(@AuthenticationPrincipal UserDetails userDetails, @RequestBody UpdateCurrentUserRequestDto updateCurrentUserRequestDto) {
-        Long userId = Long.parseLong(userDetails.getUsername());
-        User currentUser = userService.findById(userId);
-        Map<Object, Object> errorsResponse= new HashMap<>();
-
-        if (!currentUser.getEmail().equals(updateCurrentUserRequestDto.getEmail())) {
-            try {
-                userService.findByEmail(updateCurrentUserRequestDto.getEmail());
-                errorsResponse.put("email", "Такая почта уже используется");
-            } catch (ResourceNotFoundException e) {}
-        }
-
-        if (!currentUser.getPhoneNumber().equals(updateCurrentUserRequestDto.getPhoneNumber())) {
-            try {
-                userService.findByPhoneNumber(updateCurrentUserRequestDto.getPhoneNumber());
-                errorsResponse.put("phoneNumber", "Такой номер уже используется");
-            } catch (ResourceNotFoundException e) {}
-        }
-
-        if (errorsResponse.size() != 0) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorsResponse);
-        }
-
-        userService.update(updateCurrentUserRequestDto, userId);
+    @PostMapping("/commons/user/activate/{activationCode}")
+    public ResponseEntity activateUser(@PathVariable String activationCode) {
+        userService.activate(activationCode);
         return ResponseEntity.ok(null);
     }
 
+    @Secured({ "ROLE_USER", "ROLE_ADMIN" })
+    @PatchMapping("/commons/user")
+    public ResponseEntity patchCurrentUser(@AuthenticationPrincipal UserDetails userDetails, @Valid @RequestBody UpdateCurrentUserRequestDto updateCurrentUserRequestDto) {
+        try {
+            Long userId = Long.parseLong(userDetails.getUsername());
+            User result = userService.update(updateCurrentUserRequestDto, userId);
+            return ResponseEntity.ok(result);
+        } catch (ConflictException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getBody());
+        }
+    }
+
+    @Secured({ "ROLE_USER", "ROLE_ADMIN" })
     @PatchMapping("/commons/user/favorites")
-    public ResponseEntity patchFavorites(@AuthenticationPrincipal UserDetails userDetails, @RequestBody Set<ProductIdDto> products) {
+    public ResponseEntity patchFavorites(@AuthenticationPrincipal UserDetails userDetails, @Valid @RequestBody Set<ProductIdDto> products) {
         userService.updateFavorites(products, Long.parseLong(userDetails.getUsername()));
         return ResponseEntity.ok(null);
     }
 
+    @Secured({ "ROLE_USER", "ROLE_ADMIN" })
     @PatchMapping("/commons/user/cart")
-    public ResponseEntity patchCart(@AuthenticationPrincipal UserDetails userDetails, @RequestBody Set<StashedProductDto> products) {
+    public ResponseEntity patchCart(@AuthenticationPrincipal UserDetails userDetails, @Valid @RequestBody Set<StashedProductDto> products) {
         userService.updateCart(products, Long.parseLong(userDetails.getUsername()));
         return ResponseEntity.ok(null);
     }
 
+    @Secured({ "ROLE_USER", "ROLE_ADMIN" })
     @PostMapping("/commons/user/orders")
-    public ResponseEntity createOrder(@AuthenticationPrincipal UserDetails userDetails, @RequestBody CreateOrderRequestDto order) {
+    public ResponseEntity createOrder(@AuthenticationPrincipal UserDetails userDetails, @Valid @RequestBody CreateOrderRequestDto order) {
         Order result = userService.createOrder(order, Long.parseLong(userDetails.getUsername()));
         return ResponseEntity.ok(result.getId());
     }
 
+    @Secured({ "ROLE_USER", "ROLE_ADMIN" })
     @DeleteMapping("/commons/user/orders")
     public ResponseEntity cancelOrder(@AuthenticationPrincipal UserDetails userDetails, @RequestParam(name="id", required = true) Long id) {
         userService.cancelOrder(id, Long.parseLong(userDetails.getUsername()));
         return ResponseEntity.ok(null);
     }
 
+    @Secured({ "ROLE_USER", "ROLE_ADMIN" })
     @PatchMapping("/commons/user/subscription")
     public ResponseEntity changeIsSubscribed(@AuthenticationPrincipal UserDetails userDetails, @RequestParam(name="isSubscribed", required = true) Boolean isSubscribed) {
         userService.changeIsSubscribed(isSubscribed, Long.parseLong(userDetails.getUsername()));
@@ -112,15 +109,26 @@ public class UserController {
 
     @Secured("ROLE_ADMIN")
     @PatchMapping("/admin/user/{id}")
-    public ResponseEntity updateUser(@PathVariable(name = "id", required = true) Long id, @RequestBody UpdateUserRequestDto updateUserRequestDto) {
-        User result = userService.update(updateUserRequestDto, id);
-        return ResponseEntity.ok(result);
+    public ResponseEntity updateUser(@PathVariable(name = "id", required = true) Long id, @Valid @RequestBody UpdateUserRequestDto updateUserRequestDto) {
+        try {
+            User updatedUser = userService.update(updateUserRequestDto, id);
+            return ResponseEntity.ok(updatedUser);
+        } catch (ConflictException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getBody());
+        }
     }
 
     @Secured("ROLE_ADMIN")
     @DeleteMapping("/admin/user/{id}")
     public ResponseEntity deleteUser(@PathVariable(name = "id", required = true) Long id) {
         userService.delete(id);
+        return ResponseEntity.ok(null);
+    }
+
+    @Secured("ROLE_ADMIN")
+    @PostMapping("/admin/user/subscribers/notify")
+    public ResponseEntity notifySubscribers(@Valid @RequestBody MailMessageDto mailMessageDto) {
+        mailService.sendToAllSubscribers(mailMessageDto);
         return ResponseEntity.ok(null);
     }
 }

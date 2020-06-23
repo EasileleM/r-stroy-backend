@@ -16,7 +16,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
-class SecurityJsonViewControllerAdvice extends AbstractMappingJacksonResponseBodyAdvice {
+class SecurityJsonViewControllerAdviceV1 extends AbstractMappingJacksonResponseBodyAdvice {
 
     @Override
     protected void beforeBodyWriteInternal(

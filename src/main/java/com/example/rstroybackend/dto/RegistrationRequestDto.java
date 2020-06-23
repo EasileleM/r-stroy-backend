@@ -43,6 +43,7 @@ public class RegistrationRequestDto {
                 null,
                 null,
                 null,
+                null,
                 null
         );
     }

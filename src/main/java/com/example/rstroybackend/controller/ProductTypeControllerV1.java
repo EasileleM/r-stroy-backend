@@ -14,7 +14,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Secured("ROLE_ADMIN")
 @RequestMapping(value = "/api/v1/admin/productTypes")
-public class ProductTypeController {
+public class ProductTypeControllerV1 {
     private final ProductTypesService productTypesService;
 
     @GetMapping("")
