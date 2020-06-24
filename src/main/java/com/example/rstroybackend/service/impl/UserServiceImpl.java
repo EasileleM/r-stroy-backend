@@ -134,7 +134,7 @@ public class UserServiceImpl implements UserService {
 
         String message = String.format(
                 "Добро пожаловать, %s! \n" +
-                "Пройдите по ссылке для подтверждения вашей почты: http://localhost:3000/activate/%s",
+                "Пройдите по ссылке для подтверждения вашей почты: http://localhost:3000/user/activate/%s",
                 newUser.getFirstName(),
                 newUser.getActivationCode()
         );

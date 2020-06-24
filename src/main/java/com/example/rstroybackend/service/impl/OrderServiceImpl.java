@@ -3,6 +3,7 @@ package com.example.rstroybackend.service.impl;
 import com.example.rstroybackend.entity.Order;
 import com.example.rstroybackend.entity.Product;
 import com.example.rstroybackend.entity.StashedProduct;
+import com.example.rstroybackend.entity.User;
 import com.example.rstroybackend.enums.OrderStatus;
 import com.example.rstroybackend.exceptions.InternalServerErrorException;
 import com.example.rstroybackend.exceptions.ResourceNotFoundException;
@@ -84,5 +85,26 @@ public class OrderServiceImpl implements OrderService {
         log.info("IN updateOrderStatus - order with id: {} successfully updated", orderId);
 
         return result;
+    }
+
+    @Override
+    public User findUserByOrder(Long orderId) {
+        Order targetOrder = orderRepo.findById(orderId).orElse(null);
+
+        if (targetOrder == null) {
+            log.warn("IN findUserByOrder - no order found by id: {}", orderId);
+            throw new ResourceNotFoundException();
+        }
+
+        User targetUser = targetOrder.getUser();
+
+        if (targetUser == null) {
+            log.warn("IN findUserByOrder - no user found");
+            throw new ResourceNotFoundException();
+        }
+
+        log.info("IN findUserByOrder - user found: {}", targetUser);
+
+        return targetUser;
     }
 }

@@ -3,6 +3,7 @@ package com.example.rstroybackend.controller;
 import com.example.rstroybackend.dto.JsonPage;
 import com.example.rstroybackend.dto.UpdateOrderRequestDto;
 import com.example.rstroybackend.entity.Order;
+import com.example.rstroybackend.entity.User;
 import com.example.rstroybackend.service.OrderService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +32,12 @@ public class OrderControllerV1 {
     public ResponseEntity getOrder(@PathVariable(name = "id", required = true) Long id) {
         Order order = orderService.findById(id);
         return ResponseEntity.ok(order);
+    }
+
+    @GetMapping("{id}/user")
+    public ResponseEntity getOrderUser(@PathVariable(name = "id", required = true) Long id) {
+        User user = orderService.findUserByOrder(id);
+        return ResponseEntity.ok(user);
     }
 
     @PatchMapping("{id}")
