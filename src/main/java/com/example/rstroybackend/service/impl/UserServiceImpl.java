@@ -400,7 +400,9 @@ public class UserServiceImpl implements UserService {
                 .startedDate(new Date())
                 .orderStatus(OrderStatus.REGISTRATION)
                 .description(order.getDescription())
-                .arrivalPoint(order.getArrivalPoint())
+                .city(order.getCity())
+                .street(order.getStreet())
+                .house(order.getHouse())
                 .price(price)
                 .stashedProducts(orderProducts)
                 .build();

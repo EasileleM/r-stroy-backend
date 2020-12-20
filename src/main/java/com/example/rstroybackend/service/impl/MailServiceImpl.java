@@ -9,8 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,7 +42,7 @@ public class MailServiceImpl implements MailService {
     }
 
     @Override
-    public void sendToAllSubscribers(MailMessageDto mailMessageDto) {
+    public void sendToAllSubscribers(MailMessageDto mailMessageDto) throws MessagingException {
         List<User> users = userRepo.findByIsSubscribedTrue();
         String[] userEmails = new String[users.size()];
         users.stream()
@@ -47,13 +50,15 @@ public class MailServiceImpl implements MailService {
                 .collect(Collectors.toList())
                 .toArray(userEmails);
 
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
 
-        mailMessage.setFrom(username);
-        mailMessage.setTo(userEmails);
-        mailMessage.setSubject(mailMessageDto.getSubject());
-        mailMessage.setText(mailMessageDto.getMessage());
+        helper.setText(mailMessageDto.getMessage(), true);
+        helper.setSubject(mailMessageDto.getSubject());
 
-        mailSender.send(mailMessage);
+        helper.setFrom(username);
+        helper.setTo(userEmails);
+
+        mailSender.send(mimeMessage);
     }
 }

@@ -23,7 +23,7 @@ public class RegistrationRequestDto {
     private String email;
 
     @NotBlank(message = "Номер телефона обязателен")
-    @Pattern(regexp = "^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\\s\\./0-9]*$", message = "Некорректный номер телефона")
+    @Pattern(regexp = "^\\+?[78][-\\(]?\\d{3}\\)?-?\\d{3}-?\\d{2}-?\\d{2}$", message = "Некорректный номер телефона")
     private String phoneNumber;
 
     @NotBlank(message = "Пароль обязателен")

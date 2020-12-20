@@ -48,7 +48,13 @@ public class Order extends BaseEntity {
     private Date completionDate;
 
     @JsonView(SecurityViews.User.class)
-    private String arrivalPoint;
+    private String city;
+
+    @JsonView(SecurityViews.User.class)
+    private String street;
+
+    @JsonView(SecurityViews.User.class)
+    private String house;
 
     @JsonView(SecurityViews.User.class)
     private String description;

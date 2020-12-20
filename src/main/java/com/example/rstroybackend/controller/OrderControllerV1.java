@@ -22,10 +22,15 @@ import javax.validation.Valid;
 public class OrderControllerV1 {
     private final OrderService orderService;
 
-    @GetMapping("")
-    public ResponseEntity getAllOrders(@PageableDefault(size = 30, sort = { "orderStatus", "startedDate", "completionDate" }, direction = Sort.Direction.DESC) Pageable pageable) {
+    @GetMapping("/pageable")
+    public ResponseEntity getAllOrdersPageable(@PageableDefault(size = 30, sort = { "orderStatus", "startedDate", "completionDate" }, direction = Sort.Direction.DESC) Pageable pageable) {
         JsonPage<Order> orders = new JsonPage(orderService.findAll(pageable), pageable);
         return ResponseEntity.ok(orders);
+    }
+
+    @GetMapping("")
+    public ResponseEntity getAllOrders() {
+        return ResponseEntity.ok(orderService.findAll());
     }
 
     @GetMapping("{id}")

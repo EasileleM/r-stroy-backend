@@ -3,6 +3,7 @@ package com.example.rstroybackend.controller;
 import com.example.rstroybackend.dto.*;
 import com.example.rstroybackend.entity.Order;
 import com.example.rstroybackend.entity.User;
+import com.example.rstroybackend.exceptions.BadRequestException;
 import com.example.rstroybackend.exceptions.ConflictException;
 import com.example.rstroybackend.service.MailService;
 import com.example.rstroybackend.service.OrderService;
@@ -19,6 +20,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import javax.mail.MessagingException;
 import javax.validation.Valid;
 import java.util.Set;
 
@@ -75,6 +77,14 @@ public class UserControllerV1 {
     @Secured({ "ROLE_USER", "ROLE_ADMIN" })
     @PostMapping("/commons/user/orders")
     public ResponseEntity createOrder(@AuthenticationPrincipal UserDetails userDetails, @Valid @RequestBody CreateOrderRequestDto order) {
+        try {
+            orderService.validateCity(order.getCity());
+        } catch (BadRequestException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getBody());
+        } catch (Exception e) {
+           throw e;
+        }
+
         Order result = userService.createOrder(order, Long.parseLong(userDetails.getUsername()));
         return ResponseEntity.ok(result.getId());
     }
@@ -127,7 +137,7 @@ public class UserControllerV1 {
 
     @Secured("ROLE_ADMIN")
     @PostMapping("/admin/user/subscribers/notify")
-    public ResponseEntity notifySubscribers(@Valid @RequestBody MailMessageDto mailMessageDto) {
+    public ResponseEntity notifySubscribers(@Valid @RequestBody MailMessageDto mailMessageDto) throws MessagingException {
         mailService.sendToAllSubscribers(mailMessageDto);
         return ResponseEntity.ok(null);
     }

@@ -5,6 +5,7 @@ import com.example.rstroybackend.entity.Product;
 import com.example.rstroybackend.entity.StashedProduct;
 import com.example.rstroybackend.entity.User;
 import com.example.rstroybackend.enums.OrderStatus;
+import com.example.rstroybackend.exceptions.BadRequestException;
 import com.example.rstroybackend.exceptions.InternalServerErrorException;
 import com.example.rstroybackend.exceptions.ResourceNotFoundException;
 import com.example.rstroybackend.repo.OrderRepo;
@@ -18,7 +19,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -33,6 +39,13 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Page<Order> findAll(Pageable pageable) {
         Page<Order> result = orderRepo.findAll(pageable);
+
+        return result;
+    }
+
+    @Override
+    public List<Order> findAll() {
+        List<Order> result = orderRepo.findAll();
 
         return result;
     }
@@ -106,5 +119,35 @@ public class OrderServiceImpl implements OrderService {
         log.info("IN findUserByOrder - user found: {}", targetUser);
 
         return targetUser;
+    }
+
+    @Override
+    public void validateCity(String city) {
+        String cities;
+
+        try {
+            URL url = new URL("https://api.hh.ru/areas");
+            URLConnection connection = url.openConnection();
+            InputStream is = connection.getInputStream();
+
+            BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = rd.readLine()) != null) {
+                response.append(line);
+                response.append('\r');
+            }
+            rd.close();
+            cities = response.toString();
+
+        } catch (Exception e) {
+            throw new InternalServerErrorException();
+        }
+
+        if (!cities.toLowerCase().contains("\"" + city.toLowerCase() + "\"")) {
+            Map<Object, Object> errorsResponse= new HashMap<>();
+            errorsResponse.put("city", "Такого города не существует");
+            throw new BadRequestException(errorsResponse);
+        }
     }
 }

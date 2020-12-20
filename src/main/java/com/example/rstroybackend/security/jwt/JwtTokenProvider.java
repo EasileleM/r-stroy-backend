@@ -61,10 +61,6 @@ public class JwtTokenProvider {
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
-    public String getUserStringId(String token) {
-        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject();
-    }
-
     public String resolveToken(HttpServletRequest req) {
         Cookie bearerTokenCookie = WebUtils.getCookie(req, "JWTBEARERTOKEN");
         if (bearerTokenCookie != null) {
@@ -93,8 +89,12 @@ public class JwtTokenProvider {
 
     private List<String> getRoleNames(Set<Role> userRoles) {
         return userRoles.stream()
-                .map(role -> role.getName())
+                .map(Role::getName)
                 .collect(Collectors.toList());
+    }
+
+    private String getUserStringId(String token) {
+        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject();
     }
 }
 

@@ -14,5 +14,11 @@ public class CreateOrderRequestDto {
     private String description;
 
     @NotBlank
-    private String arrivalPoint;
+    private String city;
+
+    @NotBlank
+    private String street;
+
+    @NotBlank
+    private String house;
 }
